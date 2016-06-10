@@ -8,7 +8,6 @@ python:
   - "3.4"
   - "3.5"
   - "nightly" # currently points to 3.6-dev
-# command to install dependencies
-install: "pip install --user -r requirements.txt"
+# dependencies from requirements.txt are automatically installed
 # command to run tests
 script: py.test
