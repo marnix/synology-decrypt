@@ -1,4 +1,4 @@
 passlib == 1.6.5
 
 assertpy == 0.9
-pytest == 2.5.1
+pytest == 2.9.2
