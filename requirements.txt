@@ -1,4 +1,5 @@
 passlib == 1.6.5
+pyaes == 1.6.0
 
 assertpy == 0.9
 pytest == 2.9.2
