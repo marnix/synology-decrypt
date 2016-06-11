@@ -5,6 +5,10 @@ import struct
 import collections
 
 
+def _binary_contents_of(file_name):
+        with open(file_name, 'rb') as f: return f.read()
+
+
 # Thanks to http://security.stackexchange.com/a/117654/3617,
 # this is the algorithm by which 'openssl enc' generates
 # a key and an iv from a password.
@@ -37,9 +41,16 @@ def _hasher(algo, data):
 
 
 def decrypted_with_password(ciphertext, password):
+        return decrypted_with_keyiv(ciphertext, _csenc_pbkdf(password))
+
+def _csenc_pbkdf(password):
         AES_KEY_SIZE_BITS = 256
         AES_IV_LENGTH_BYTES = 16
         (key,iv) = _openssl_kdf('md5', password, b'', AES_KEY_SIZE_BITS//8, AES_IV_LENGTH_BYTES)
+        return (key,iv)
+
+def decrypted_with_keyiv(ciphertext, key_iv_pair):
+        (key,iv) = key_iv_pair
         aes = pyaes.AESModeOfOperationCBC(key, iv=iv)
         decrypter = pyaes.Decrypter(aes)
         decrypted = decrypter.feed(ciphertext)
@@ -123,3 +134,22 @@ def decode_csenc_stream(f):
                                 if k != 'type': yield (k,v)
                 elif obj['type'] == 'data':
                         yield (None, obj['data'])
+
+
+def lz4_uncompress(data):
+        import tempfile
+        import subprocess
+        import os
+        try:
+                compr_file = tempfile.NamedTemporaryFile(delete=False)
+                compr_file.write(data)
+                compr_file.close()
+
+                decompr_file = tempfile.NamedTemporaryFile(delete=True)
+                decompr_file.close()
+
+                subprocess.check_call(['lz4', '-d', compr_file.name, decompr_file.name])
+                return _binary_contents_of(decompr_file.name)
+        finally:
+                os.remove(compr_file.name)
+                os.remove(decompr_file.name)
