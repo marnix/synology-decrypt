@@ -47,12 +47,14 @@ def decrypted_with_password(ciphertext, password):
         return decrypted
 
 
-def salted_hash(salt, data):
+def salted_hash_of(salt, data):
         m = hashlib.md5()
         m.update(salt.encode('ascii'))
         m.update(data)
         return salt + m.hexdigest()
 
+def is_salted_hash_correct(salted_hash, data):
+        return salted_hash_of(salted_hash[:10], data) == salted_hash
 
 def _read_objects_from(f):
         result = []

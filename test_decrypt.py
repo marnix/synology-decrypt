@@ -27,7 +27,8 @@ def test_decrypt_enc_key1():
 def test_salted_hash():
         session_key = b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
         session_key_hash = 'jM41by6vAd517830d42bfb52eae9b58cd41eac95b0'
-        assert syndecrypt.salted_hash(session_key_hash[:10], session_key) == session_key_hash
+        assert syndecrypt.salted_hash_of(session_key_hash[:10], session_key) == session_key_hash
+        assert syndecrypt.is_salted_hash_correct(session_key_hash, session_key)
 
 
 def test_decode_single_line_file():
