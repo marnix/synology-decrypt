@@ -24,6 +24,12 @@ def test_decrypt_enc_key1():
         assert syndecrypt.decrypted_with_password(enc_key1_binary, PASSWORD) == b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
 
 
+def test_salted_hash():
+        session_key = b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
+        session_key_hash = 'jM41by6vAd517830d42bfb52eae9b58cd41eac95b0'
+        assert syndecrypt.salted_hash(session_key_hash[:10], session_key) == session_key_hash
+
+
 def test_decode_single_line_file():
         with open('testfiles-csenc/single-line.txt', 'rb') as f:
                 s = syndecrypt.decode_csenc_stream(f)

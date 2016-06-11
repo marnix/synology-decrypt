@@ -47,6 +47,13 @@ def decrypted_with_password(ciphertext, password):
         return decrypted
 
 
+def salted_hash(salt, data):
+        m = hashlib.md5()
+        m.update(salt.encode('ascii'))
+        m.update(data)
+        return salt + m.hexdigest()
+
+
 def _read_objects_from(f):
         result = []
         while True:
