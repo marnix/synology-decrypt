@@ -2,6 +2,7 @@ import pyaes
 import hashlib
 from passlib.utils.pbkdf2 import pbkdf1
 import struct
+import collections
 
 
 # Thanks to http://security.stackexchange.com/a/117654/3617,
@@ -72,7 +73,7 @@ def _read_object_from(f):
                 assert False, 'header_byte should not be ' + ("0x%02X" % header_byte)
 
 def _continue_read_dict_from(f):
-        result = {}
+        result = collections.OrderedDict()
         while True:
                 key = _read_object_from(f)
                 if key == None: break
@@ -110,6 +111,6 @@ def decode_csenc_stream(f):
                 assert isinstance(obj, dict)
                 if obj['type'] == 'metadata':
                         for (k,v) in obj.items():
-                                if k != 'type': yield (True, (k,v))
+                                if k != 'type': yield (k,v)
                 elif obj['type'] == 'data':
-                        yield (False, obj['data'])
+                        yield (None, obj['data'])
