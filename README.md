@@ -81,6 +81,5 @@ all:
  
 Until now, there is only one unofficial source of information:
 
- - the answers to my StackOverflow question: [What decryption algorithm is
+ - The answers and comments on my StackOverflow question: [What decryption algorithm is
    used here?](http://security.stackexchange.com/q/124838/3617).
-
