@@ -148,3 +148,22 @@ def decode_csenc_stream(f):
                                 if k != 'type': yield (k,v)
                 elif obj['type'] == 'data':
                         yield (None, obj['data'])
+
+
+def lz4_uncompress(data):
+        import tempfile
+        import subprocess
+        import os
+        try:
+                compr_file = tempfile.NamedTemporaryFile(delete=False)
+                compr_file.write(data)
+                compr_file.close()
+
+                decompr_file = tempfile.NamedTemporaryFile(delete=True)
+                decompr_file.close()
+
+                subprocess.check_call(['lz4', '-d', compr_file.name, decompr_file.name])
+                return _binary_contents_of(decompr_file.name)
+        finally:
+                os.remove(compr_file.name)
+                os.remove(decompr_file.name)

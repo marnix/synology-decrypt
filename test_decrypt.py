@@ -60,3 +60,8 @@ def test_decode_single_line_file():
                 (none, data) = next(s)
                 assert none == None and isinstance(data, bytes) # a chunk of encrypted compressed data
                 assert next(s) == ('file_md5', 'e45f14e62971070603ff27c2bb05f5a4')
+
+                session_key = b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
+                decrypted_compressed_data = syndecrypt.decrypted_with_password(data, session_key)
+                decrypted_uncompressed_data = syndecrypt.lz4_uncompress(decrypted_compressed_data)
+                assert decrypted_uncompressed_data == b'Just a single line, no newline character at the end...'
