@@ -1,4 +1,4 @@
-import pyaes
+from Crypto.Cipher import AES
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 import hashlib
@@ -38,19 +38,28 @@ def _hasher(algo, data):
     h.update(data)
     return h.digest()
 
+# From pyaes, since pycrypto does not implement padding
+
+def strip_PKCS7_padding(data):
+    if len(data) % 16 != 0:
+        raise ValueError("invalid length")
+    pad = bytearray(data)[-1]
+    if pad > 16:
+        raise ValueError("invalid padding byte")
+    return data[:-pad]
+
 
 def decrypted_with_password(ciphertext, password):
         AES_KEY_SIZE_BITS = 256
-        AES_IV_LENGTH_BYTES = 16
+        AES_IV_LENGTH_BYTES = AES.block_size
+        assert AES_IV_LENGTH_BYTES == 16
         (key,iv) = _openssl_kdf('md5', password, b'', AES_KEY_SIZE_BITS//8, AES_IV_LENGTH_BYTES)
-        aes = pyaes.AESModeOfOperationCBC(key, iv=iv)
-        decrypter = pyaes.Decrypter(aes)
-        decrypted = decrypter.feed(ciphertext)
-        decrypted += decrypter.feed()
-        return decrypted
 
-def decrypted_with_private_key(data, private_key):
-        return PKCS1_OAEP.new(RSA.importKey(private_key)).decrypt(data)
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+        return strip_PKCS7_padding(cipher.decrypt(ciphertext))
+
+def decrypted_with_private_key(ciphertext, private_key):
+        return PKCS1_OAEP.new(RSA.importKey(private_key)).decrypt(ciphertext)
 
 
 def salted_hash_of(salt, data):
