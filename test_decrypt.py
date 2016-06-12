@@ -43,6 +43,10 @@ def test_salted_hash():
         assert syndecrypt.salted_hash_of(session_key_hash[:10], session_key) == session_key_hash
         assert syndecrypt.is_salted_hash_correct(session_key_hash, session_key)
 
+        password_hash = '4ZF3pd4Y17c7cf0f016aada3f8398d22c8708d8649'
+        assert syndecrypt.salted_hash_of(password_hash[:10], PASSWORD) == password_hash
+        assert syndecrypt.is_salted_hash_correct(password_hash, PASSWORD)
+
 
 def test_decode_single_line_file():
         with open('testfiles-csenc/single-line.txt', 'rb') as f:
