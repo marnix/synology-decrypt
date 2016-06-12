@@ -7,13 +7,6 @@ python:
   - "3.4"
   - "3.5"
   - "nightly" # currently points to 3.6-dev
-
-addons:
-  apt:
-    packages:
-    - liblz4-tool
-
 # dependencies from requirements.txt are automatically installed
-
 # command to run tests
 script: py.test
