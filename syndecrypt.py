@@ -1,6 +1,9 @@
 import pyaes
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
 import hashlib
 from passlib.utils.pbkdf2 import pbkdf1
+
 import struct
 import collections
 
@@ -45,6 +48,9 @@ def decrypted_with_password(ciphertext, password):
         decrypted = decrypter.feed(ciphertext)
         decrypted += decrypter.feed()
         return decrypted
+
+def decrypted_with_private_key(data, private_key):
+        return PKCS1_OAEP.new(RSA.importKey(private_key)).decrypt(data)
 
 
 def salted_hash_of(salt, data):

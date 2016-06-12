@@ -9,6 +9,7 @@ def binary_contents_of(file_name):
         with open(file_name, 'rb') as f: return f.read()
 
 PASSWORD=binary_contents_of('testfiles-secrets/password.txt')
+PRIVATE_KEY=binary_contents_of('testfiles-secrets/private.pem')
 
 
 def test_decrypt_enc_key1():
@@ -22,6 +23,19 @@ def test_decrypt_enc_key1():
         enc_key1 = b'f662PyjwrkzR61qSRHyBEVkXVd7STUpV6o7IrJs+m8gN1haqmBtMzLvq2/Gj134r'
         enc_key1_binary = base64.b64decode(enc_key1)
         assert syndecrypt.decrypted_with_password(enc_key1_binary, PASSWORD) == b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
+
+def test_decrypt_enc_key2():
+        """
+        Test that we can do the equivalent of
+
+          $ echo 'ovVar7Zpi0HVPZ3CGmXRBhp4l1Q1BNNo0/uYfdwSg1GDD/MXNSMXcuAf65pYObUQsu4aCQc82LldLINkUSFyoPYUDe5YKh4Fv3993YQ7CPYk5RrWem2CGntdjmS1J5KV9YHa7bF2l6wMT2FiFvfd+/3Pikadb/fqOC/hN5hx2kA2c5n3FltCGehhfW97Bb3aLEZaOJ8rpoPuHDIa6yxhstCHrajnb0870KprqSfFZUdin1G1hqpwJ+1gm7CmFkjKA6QqMD5dx7bru69g98VwrqYqGmYR3lmJuMI0wJn7WwbciWCOQV5fnfMMxiAiZ0DK1fseqWxMIYUk3lVOcAA3KA==' \
+              | base64 -d | openssl rsautl -decrypt -inkey testfiles-secrets/private.pem -oaep
+          BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6
+        """
+        enc_key2 = b'ovVar7Zpi0HVPZ3CGmXRBhp4l1Q1BNNo0/uYfdwSg1GDD/MXNSMXcuAf65pYObUQsu4aCQc82LldLINkUSFyoPYUDe5YKh4Fv3993YQ7CPYk5RrWem2CGntdjmS1J5KV9YHa7bF2l6wMT2FiFvfd+/3Pikadb/fqOC/hN5hx2kA2c5n3FltCGehhfW97Bb3aLEZaOJ8rpoPuHDIa6yxhstCHrajnb0870KprqSfFZUdin1G1hqpwJ+1gm7CmFkjKA6QqMD5dx7bru69g98VwrqYqGmYR3lmJuMI0wJn7WwbciWCOQV5fnfMMxiAiZ0DK1fseqWxMIYUk3lVOcAA3KA=='
+        enc_key2_binary = base64.b64decode(enc_key2)
+
+        assert syndecrypt.decrypted_with_private_key(enc_key2_binary, PRIVATE_KEY) == b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
 
 
 def test_salted_hash():
