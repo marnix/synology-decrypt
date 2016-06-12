@@ -1,15 +1,14 @@
+from __future__ import print_function
+
 import syndecrypt
 import collections
 
-import assertpy
+from assertpy import assert_that
 import base64
 
 
-def binary_contents_of(file_name):
-        with open(file_name, 'rb') as f: return f.read()
-
-PASSWORD=binary_contents_of('testfiles-secrets/password.txt')
-PRIVATE_KEY=binary_contents_of('testfiles-secrets/private.pem')
+PASSWORD=syndecrypt._binary_contents_of('testfiles-secrets/password.txt')
+PRIVATE_KEY=syndecrypt._binary_contents_of('testfiles-secrets/private.pem')
 
 
 def test_decrypt_enc_key1():
@@ -58,6 +57,6 @@ def test_decode_single_line_file():
                 assert next(s) == ('key2_hash', 'Hs2fAqiRaTb73da9c06e2b824dc3a9935ae71bdd14')
                 assert next(s) == ('session_key_hash', 'jM41by6vAd517830d42bfb52eae9b58cd41eac95b0')
                 assert next(s) == ('version', collections.OrderedDict([('major', 1), ('minor', 0)]))
-                (k,v) = next(s)
-                assert k == None and isinstance(v, bytes) # a chunk of encrypted data
+                (none, data) = next(s)
+                assert none == None and isinstance(data, bytes) # a chunk of encrypted compressed data
                 assert next(s) == ('file_md5', 'e45f14e62971070603ff27c2bb05f5a4')
