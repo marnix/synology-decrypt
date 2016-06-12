@@ -8,6 +8,10 @@ import struct
 import collections
 
 
+def _binary_contents_of(file_name):
+        with open(file_name, 'rb') as f: return f.read()
+
+
 # Thanks to http://security.stackexchange.com/a/117654/3617,
 # this is the algorithm by which 'openssl enc' generates
 # a key and an iv from a password.
@@ -50,11 +54,17 @@ def strip_PKCS7_padding(data):
 
 
 def decrypted_with_password(ciphertext, password):
+        return decrypted_with_keyiv(ciphertext, _csenc_pbkdf(password))
+
+def _csenc_pbkdf(password):
         AES_KEY_SIZE_BITS = 256
         AES_IV_LENGTH_BYTES = AES.block_size
         assert AES_IV_LENGTH_BYTES == 16
         (key,iv) = _openssl_kdf('md5', password, b'', AES_KEY_SIZE_BITS//8, AES_IV_LENGTH_BYTES)
+        return (key,iv)
 
+def decrypted_with_keyiv(ciphertext, key_iv_pair):
+        (key,iv) = key_iv_pair
         cipher = AES.new(key, AES.MODE_CBC, iv)
         return strip_PKCS7_padding(cipher.decrypt(ciphertext))
 
