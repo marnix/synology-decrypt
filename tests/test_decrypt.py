@@ -1,14 +1,15 @@
 from __future__ import print_function
 
-import syndecrypt
+import syndecrypt.core as core
+import syndecrypt.util as util
 import collections
 
 from assertpy import assert_that
 import base64
 
 
-PASSWORD=syndecrypt._binary_contents_of('testfiles-secrets/password.txt')
-PRIVATE_KEY=syndecrypt._binary_contents_of('testfiles-secrets/private.pem')
+PASSWORD=util._binary_contents_of('tests/testfiles-secrets/password.txt')
+PRIVATE_KEY=util._binary_contents_of('tests/testfiles-secrets/private.pem')
 
 
 def test_decrypt_enc_key1():
@@ -21,36 +22,36 @@ def test_decrypt_enc_key1():
 
         enc_key1 = b'f662PyjwrkzR61qSRHyBEVkXVd7STUpV6o7IrJs+m8gN1haqmBtMzLvq2/Gj134r'
         enc_key1_binary = base64.b64decode(enc_key1)
-        assert syndecrypt.decrypted_with_password(enc_key1_binary, PASSWORD) == b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
+        assert core.decrypted_with_password(enc_key1_binary, PASSWORD) == b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
 
 def test_decrypt_enc_key2():
         """
         Test that we can do the equivalent of
 
           $ echo 'ovVar7Zpi0HVPZ3CGmXRBhp4l1Q1BNNo0/uYfdwSg1GDD/MXNSMXcuAf65pYObUQsu4aCQc82LldLINkUSFyoPYUDe5YKh4Fv3993YQ7CPYk5RrWem2CGntdjmS1J5KV9YHa7bF2l6wMT2FiFvfd+/3Pikadb/fqOC/hN5hx2kA2c5n3FltCGehhfW97Bb3aLEZaOJ8rpoPuHDIa6yxhstCHrajnb0870KprqSfFZUdin1G1hqpwJ+1gm7CmFkjKA6QqMD5dx7bru69g98VwrqYqGmYR3lmJuMI0wJn7WwbciWCOQV5fnfMMxiAiZ0DK1fseqWxMIYUk3lVOcAA3KA==' \
-              | base64 -d | openssl rsautl -decrypt -inkey testfiles-secrets/private.pem -oaep
+              | base64 -d | openssl rsautl -decrypt -inkey tests/testfiles-secrets/private.pem -oaep
           BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6
         """
         enc_key2 = b'ovVar7Zpi0HVPZ3CGmXRBhp4l1Q1BNNo0/uYfdwSg1GDD/MXNSMXcuAf65pYObUQsu4aCQc82LldLINkUSFyoPYUDe5YKh4Fv3993YQ7CPYk5RrWem2CGntdjmS1J5KV9YHa7bF2l6wMT2FiFvfd+/3Pikadb/fqOC/hN5hx2kA2c5n3FltCGehhfW97Bb3aLEZaOJ8rpoPuHDIa6yxhstCHrajnb0870KprqSfFZUdin1G1hqpwJ+1gm7CmFkjKA6QqMD5dx7bru69g98VwrqYqGmYR3lmJuMI0wJn7WwbciWCOQV5fnfMMxiAiZ0DK1fseqWxMIYUk3lVOcAA3KA=='
         enc_key2_binary = base64.b64decode(enc_key2)
 
-        assert syndecrypt.decrypted_with_private_key(enc_key2_binary, PRIVATE_KEY) == b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
+        assert core.decrypted_with_private_key(enc_key2_binary, PRIVATE_KEY) == b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
 
 
 def test_salted_hash():
         session_key = b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
         session_key_hash = 'jM41by6vAd517830d42bfb52eae9b58cd41eac95b0'
-        assert syndecrypt.salted_hash_of(session_key_hash[:10], session_key) == session_key_hash
-        assert syndecrypt.is_salted_hash_correct(session_key_hash, session_key)
+        assert core.salted_hash_of(session_key_hash[:10], session_key) == session_key_hash
+        assert core.is_salted_hash_correct(session_key_hash, session_key)
 
         password_hash = '4ZF3pd4Y17c7cf0f016aada3f8398d22c8708d8649'
-        assert syndecrypt.salted_hash_of(password_hash[:10], PASSWORD) == password_hash
-        assert syndecrypt.is_salted_hash_correct(password_hash, PASSWORD)
+        assert core.salted_hash_of(password_hash[:10], PASSWORD) == password_hash
+        assert core.is_salted_hash_correct(password_hash, PASSWORD)
 
 
 def test_decode_single_line_file():
-        with open('testfiles-csenc/single-line.txt', 'rb') as f:
-                s = syndecrypt.decode_csenc_stream(f)
+        with open('tests/testfiles-csenc/single-line.txt', 'rb') as f:
+                s = core.decode_csenc_stream(f)
                 assert next(s) == ('compress', 1)
                 assert next(s) == ('digest', 'md5')
                 assert next(s) == ('enc_key1', 'f662PyjwrkzR61qSRHyBEVkXVd7STUpV6o7IrJs+m8gN1haqmBtMzLvq2/Gj134r')
@@ -66,6 +67,6 @@ def test_decode_single_line_file():
                 assert next(s) == ('file_md5', 'e45f14e62971070603ff27c2bb05f5a4')
 
                 session_key = b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
-                decrypted_compressed_data = syndecrypt.decrypted_with_password(data, session_key)
-                decrypted_uncompressed_data = syndecrypt.lz4_uncompress(decrypted_compressed_data)
+                decrypted_compressed_data = core.decrypted_with_password(data, session_key)
+                decrypted_uncompressed_data = core.lz4_uncompress(decrypted_compressed_data)
                 assert decrypted_uncompressed_data == b'Just a single line, no newline character at the end...'

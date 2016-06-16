@@ -1,3 +1,5 @@
+import syndecrypt.util as util
+
 from Crypto.Cipher import AES
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
@@ -6,10 +8,6 @@ from passlib.utils.pbkdf2 import pbkdf1
 
 import struct
 import collections
-
-
-def _binary_contents_of(file_name):
-        with open(file_name, 'rb') as f: return f.read()
 
 
 # Thanks to http://security.stackexchange.com/a/117654/3617,
@@ -163,7 +161,7 @@ def lz4_uncompress(data):
                 decompr_file.close()
 
                 subprocess.check_call(['lz4', '-d', compr_file.name, decompr_file.name])
-                return _binary_contents_of(decompr_file.name)
+                return util._binary_contents_of(decompr_file.name)
         finally:
                 os.remove(compr_file.name)
                 os.remove(decompr_file.name)
