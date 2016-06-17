@@ -18,4 +18,4 @@ addons:
 # dependencies from requirements.txt are automatically installed
 
 # command to run tests
-script: py.test
+script: python -m pytest
