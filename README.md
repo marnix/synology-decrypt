@@ -83,3 +83,37 @@ Until now, there is only one unofficial source of information:
 
  - The answers and comments on my StackOverflow question: [What decryption algorithm is
    used here?](http://security.stackexchange.com/q/124838/3617).
+
+# To Do
+
+The current code is still basic and does not provide enough explanation yet.  I'd still like to do the following:
+
+## Core decryption algorithm
+
+* Replace `assert`s by `logging` errors/warnings.
+* Verify the file md5 checksum.
+* Check that version in encrypted file is 1.0.
+* Perform verification of all key hashes.
+* Warn for any known field that is missing, and for every unknown field.
+* Rename `core` to `algorithm`?
+* Full documentation of the algorithm in the 'core' module.
+* Add algorithm diagram.
+* Perform the decryption in a streaming mode.
+* Do LZ4-decompression on files (not in memory), in place; move to `util` module.
+* Support `encrypt` = 0 and `compress` = 0 modes.  (It is an error if either of these fields is not specified.)
+* Add verification of `@SynologyCloudSync/cloudsync_encrypt.info` file using password and/or private key.
+* Investigate how DSM GUI handles non-ASCII passwords.
+
+## Command-line decryption tool
+
+* Add unit tests.
+* Allow decryption using private key from file.
+* Decrypt directories recursively.
+* Read password from file (instead of command line) (check single line, strip leading/trailing whitespace, warning if not printable ASCII).
+* Make log level configurable (default: warning).
+* Add `--verify` option, to check decryptability and file structure.
+* Make `--verify` option also verify `@SynologyCloudSync/cloudsync_encrypt.info` files.
+
+## Encryption
+
+* Add encryption option/algorithm.
