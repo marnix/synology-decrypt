@@ -31,4 +31,4 @@ logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(format='%(levelname)s: %(message)s')
 
 for f in arguments['<encrypted-file>']:
-        files.decrypt_file(f, os.path.join(output_dir, f))
+        files.decrypt_file(f, os.path.join(output_dir, f), password)

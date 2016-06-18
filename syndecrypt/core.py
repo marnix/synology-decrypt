@@ -1,4 +1,5 @@
 import syndecrypt.util as util
+from syndecrypt.util import switch
 
 from Crypto.Cipher import AES
 from Crypto.Cipher import PKCS1_OAEP
@@ -8,6 +9,7 @@ from passlib.utils.pbkdf2 import pbkdf1
 
 import struct
 import collections
+import base64
 
 
 # Thanks to http://security.stackexchange.com/a/117654/3617,
@@ -165,3 +167,26 @@ def lz4_uncompress(data):
         finally:
                 os.remove(compr_file.name)
                 os.remove(decompr_file.name)
+
+
+def decrypt_stream(instream, outstream, password):
+
+        session_key = None
+        data = b''
+
+        for (key,value) in decode_csenc_stream(instream):
+                for case in switch(key):
+                        if case('enc_key1'):
+                                s = decrypted_with_password(base64.b64decode(value), password)
+                                if session_key != None and session_key != s:
+                                        raise Exception('two different session keys found')
+                                session_key = s
+                                break
+                        if case(None):
+                                data += value
+                                break
+
+        if session_key == None:
+                raise Exception('not enough information to decrypt data')
+
+        outstream.write(lz4_uncompress(decrypted_with_password(data, session_key)))
