@@ -20,11 +20,11 @@ import docopt
 import os
 import logging
 
-import files
+import syndecrypt.files as files
 
 arguments = docopt.docopt(__doc__)
 
-password = arguments['--password']
+password = arguments['--password'].encode('ascii') # TODO: which encoding?
 output_dir = arguments['--output-directory']
 
 logging.getLogger().setLevel(logging.INFO)
