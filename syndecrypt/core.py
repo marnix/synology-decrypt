@@ -7,10 +7,12 @@ from Crypto.PublicKey import RSA
 import hashlib
 from passlib.utils.pbkdf2 import pbkdf1
 
+import logging
 import struct
 import collections
 import base64
 
+LOGGER=logging.getLogger(__name__)
 
 # Thanks to http://security.stackexchange.com/a/117654/3617,
 # this is the algorithm by which 'openssl enc' generates
@@ -104,7 +106,7 @@ def _read_object_from(f):
         elif header_byte == 0x01:
                 return _continue_read_int_from(f)
         else:
-                assert False, 'header_byte should not be ' + ("0x%02X" % header_byte)
+                raise Exception('unknown type byte ' + ("0x%02X" % header_byte))
 
 def _continue_read_dict_from(f):
         result = collections.OrderedDict()
@@ -126,18 +128,27 @@ def _continue_read_string_from(f):
 def _continue_read_int_from(f):
         s = f.read(1)
         length = struct.unpack('>B', s)[0]
-        assert length == 1, 'currently only integers of 1 byte supported: endianness is unknown'
-        return ord(f.read(1))
+        if length > 1:
+                LOGGER.warning('multi-byte number encountered; guessing it is big-endian')
+        s = f.read(length)
+        if length > 0 and bytes_to_bigendian_int(s[:1]) >= 128:
+                LOGGER.warning('ambiguous number encountered; guessing it is positive')
+        return bytes_to_bigendian_int(s) # big-endian integer, 'length' bytes
 
+def bytes_to_bigendian_int(b):
+        import binascii
+        return int(binascii.hexlify(b), 16) if b != b'' else 0
 
 def decode_csenc_stream(f):
         MAGIC = b'__CLOUDSYNC_ENC__'
 
         s = f.read(len(MAGIC))
-        assert s == MAGIC, 'magic should not be ' + str(s) + ' but ' + str(MAGIC)
+        if s != MAGIC:
+                LOGGER.error('magic should not be ' + str(s) + ' but ' + str(MAGIC))
         s = f.read(32)
         magic_hash = hashlib.md5(MAGIC).hexdigest().encode('ascii')
-        assert s == magic_hash, 'magic hash should not be ' + str(s) + ' but ' + str(magic_hash)
+        if s != magic_hash:
+                LOGGER.error('magic hash should not be ' + str(s) + ' but ' + str(magic_hash))
 
         metadata = {}
         data = b''
