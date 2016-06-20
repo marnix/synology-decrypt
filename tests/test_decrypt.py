@@ -6,10 +6,20 @@ import collections
 
 from assertpy import assert_that
 import base64
+import io
+import logging
 
+LOGGER=logging.getLogger(__name__)
 
 PASSWORD=util._binary_contents_of('tests/testfiles-secrets/password.txt')
 PRIVATE_KEY=util._binary_contents_of('tests/testfiles-secrets/private.pem')
+
+
+def test_decode_int():
+        assert core._continue_read_int_from(io.BytesIO(b'\x00')) == 0
+        assert core._continue_read_int_from(io.BytesIO(b'\x01\x02')) == 2
+        assert core._continue_read_int_from(io.BytesIO(b'\x01\x82')) == 128 + 2
+        assert core._continue_read_int_from(io.BytesIO(b'\x02\x80\x02')) == 32768 + 2
 
 
 def test_decrypt_enc_key1():

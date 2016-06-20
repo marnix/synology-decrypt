@@ -91,7 +91,6 @@ The current code is still basic and does not provide enough explanation yet.  I'
 
 ## Core decryption algorithm
 
-* Replace `assert`s by `logging` errors/warnings.
 * Verify the file md5 checksum.
 * Check that version in encrypted file is 1.0.
 * Perform verification of all key hashes.
