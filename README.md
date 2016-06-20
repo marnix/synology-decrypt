@@ -59,7 +59,8 @@ all:
 
    (The GUI has a help icon that opens
    https://help.synology.com/enu/utility/SynologyCloudSyncDecryptionTool which
-   at the time of writing results in a 404.)
+   which contains the same infor as the KB article below.  It also returns
+   404 fairly often.)
    
  * Synology Knowledge Base article ["What is Synology Cloud Sync Decryption
    Tool?"](https://www.synology.com/en-global/knowledgebase/DSM/tutorial/Application/What_is_Synology_Cloud_Sync_Decryption_Tool)
