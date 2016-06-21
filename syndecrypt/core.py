@@ -9,7 +9,7 @@ from passlib.utils.pbkdf2 import pbkdf1
 
 import logging
 import struct
-import collections
+from collections import OrderedDict
 import base64
 
 LOGGER=logging.getLogger(__name__)
@@ -96,7 +96,7 @@ def _read_object_from(f):
         if len(s) == 0: return None
         header_byte = bytearray(s)[0]
         if header_byte == 0x42:
-                return _continue_read_dict_from(f)
+                return _continue_read_ordered_dict_from(f)
         elif header_byte == 0x40:
                 return None
         elif header_byte == 0x11:
@@ -108,8 +108,8 @@ def _read_object_from(f):
         else:
                 raise Exception('unknown type byte ' + ("0x%02X" % header_byte))
 
-def _continue_read_dict_from(f):
-        result = collections.OrderedDict()
+def _continue_read_ordered_dict_from(f):
+        result = OrderedDict()
         while True:
                 key = _read_object_from(f)
                 if key == None: break
@@ -192,6 +192,12 @@ def decrypt_stream(instream, outstream, password):
                                 if session_key != None and session_key != s:
                                         raise Exception('two different session keys found')
                                 session_key = s
+                                break
+                        if case('version'):
+                                expected_version_number = OrderedDict([('major',1),('minor',0)])
+                                if value != expected_version_number:
+                                        raise Exception('found version number ' + str(value) + \
+                                                ' instead of expected ' + str(expected_version_number))
                                 break
                         if case(None):
                                 data += value
