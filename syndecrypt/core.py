@@ -195,7 +195,7 @@ def decrypt_stream(instream, outstream, password):
         for (key,value) in decode_csenc_stream(instream):
                 for case in switch(key):
                         if case('enc_key1'):
-                                session_key = decrypted_with_password(base64.b64decode(value), password)
+                                session_key = decrypted_with_password(base64.b64decode(value.encode('ascii')), password)
                                 decryptor = decryptor_with_password(session_key)
                                 break
                         if case('version'):
