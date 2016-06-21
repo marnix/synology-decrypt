@@ -80,3 +80,10 @@ def test_decode_single_line_file():
                 decrypted_compressed_data = core.decrypted_with_password(data, session_key)
                 decrypted_uncompressed_data = core.lz4_uncompress(decrypted_compressed_data)
                 assert decrypted_uncompressed_data == b'Just a single line, no newline character at the end...'
+
+
+def test_decrypt_single_line_stream():
+        outstream = io.BytesIO()
+        with open('tests/testfiles-csenc/single-line.txt', 'rb') as f:
+                core.decrypt_stream(f, outstream, PASSWORD)
+        assert outstream.getvalue() == b'Just a single line, no newline character at the end...'
