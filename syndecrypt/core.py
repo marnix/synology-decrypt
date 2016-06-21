@@ -9,7 +9,7 @@ from passlib.utils.pbkdf2 import pbkdf1
 
 import logging
 import struct
-import collections
+from collections import OrderedDict
 import base64
 
 LOGGER=logging.getLogger(__name__)
@@ -56,7 +56,12 @@ def strip_PKCS7_padding(data):
 
 
 def decrypted_with_password(ciphertext, password):
-        return decrypted_with_keyiv(ciphertext, _csenc_pbkdf(password))
+        decryptor = _decryptor_with_keyiv(_csenc_pbkdf(password))
+        plaintext = decryptor_update(decryptor, ciphertext)
+        return plaintext
+
+def decryptor_with_password(password):
+        return _decryptor_with_keyiv(_csenc_pbkdf(password))
 
 def _csenc_pbkdf(password):
         AES_KEY_SIZE_BITS = 256
@@ -65,10 +70,12 @@ def _csenc_pbkdf(password):
         (key,iv) = _openssl_kdf('md5', password, b'', AES_KEY_SIZE_BITS//8, AES_IV_LENGTH_BYTES)
         return (key,iv)
 
-def decrypted_with_keyiv(ciphertext, key_iv_pair):
+def _decryptor_with_keyiv(key_iv_pair):
         (key,iv) = key_iv_pair
-        cipher = AES.new(key, AES.MODE_CBC, iv)
-        return strip_PKCS7_padding(cipher.decrypt(ciphertext))
+        return AES.new(key, AES.MODE_CBC, iv)
+
+def decryptor_update(decryptor, ciphertext):
+        return strip_PKCS7_padding(decryptor.decrypt(ciphertext))
 
 def decrypted_with_private_key(ciphertext, private_key):
         return PKCS1_OAEP.new(RSA.importKey(private_key)).decrypt(ciphertext)
@@ -96,7 +103,7 @@ def _read_object_from(f):
         if len(s) == 0: return None
         header_byte = bytearray(s)[0]
         if header_byte == 0x42:
-                return _continue_read_dict_from(f)
+                return _continue_read_ordered_dict_from(f)
         elif header_byte == 0x40:
                 return None
         elif header_byte == 0x11:
@@ -108,8 +115,8 @@ def _read_object_from(f):
         else:
                 raise Exception('unknown type byte ' + ("0x%02X" % header_byte))
 
-def _continue_read_dict_from(f):
-        result = collections.OrderedDict()
+def _continue_read_ordered_dict_from(f):
+        result = OrderedDict()
         while True:
                 key = _read_object_from(f)
                 if key == None: break
@@ -182,22 +189,26 @@ def lz4_uncompress(data):
 
 def decrypt_stream(instream, outstream, password):
 
-        session_key = None
-        data = b''
+        decryptor = None
+        decrypted_data = b''
 
         for (key,value) in decode_csenc_stream(instream):
                 for case in switch(key):
                         if case('enc_key1'):
-                                s = decrypted_with_password(base64.b64decode(value), password)
-                                if session_key != None and session_key != s:
-                                        raise Exception('two different session keys found')
-                                session_key = s
+                                session_key = decrypted_with_password(base64.b64decode(value), password)
+                                decryptor = decryptor_with_password(session_key)
+                                break
+                        if case('version'):
+                                expected_version_number = OrderedDict([('major',1),('minor',0)])
+                                if value != expected_version_number:
+                                        raise Exception('found version number ' + str(value) + \
+                                                ' instead of expected ' + str(expected_version_number))
                                 break
                         if case(None):
-                                data += value
+                                decrypted_data += decryptor_update(decryptor, value)
                                 break
 
-        if session_key == None:
+        if decryptor == None:
                 raise Exception('not enough information to decrypt data')
 
-        outstream.write(lz4_uncompress(decrypted_with_password(data, session_key)))
+        outstream.write(lz4_uncompress(decrypted_data))
