@@ -106,7 +106,6 @@ The current code is still basic and does not provide enough explanation yet.  I'
 ## Command-line decryption tool
 
 * Add unit tests.
-* Allow decryption using private key from file.
 * Decrypt directories recursively.
 * Read password from file (instead of command line) (check single line, strip leading/trailing whitespace, warning if not printable ASCII).
 * Make log level configurable (default: warning).

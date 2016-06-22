@@ -5,6 +5,7 @@ import syndecrypt.util as util
 import collections
 
 from assertpy import assert_that
+import sys
 import base64
 import io
 import logging
@@ -82,8 +83,23 @@ def test_decode_single_line_file():
                 assert decrypted_uncompressed_data == b'Just a single line, no newline character at the end...'
 
 
-def test_decrypt_single_line_stream():
+def test_decrypt_single_line_stream_with_password():
         outstream = io.BytesIO()
         with open('tests/testfiles-csenc/single-line.txt', 'rb') as f:
-                core.decrypt_stream(f, outstream, PASSWORD)
+                core.decrypt_stream(f, outstream, password=PASSWORD)
         assert outstream.getvalue() == b'Just a single line, no newline character at the end...'
+
+def test_decrypt_single_line_stream_with_private_key():
+        outstream = io.BytesIO()
+        with open('tests/testfiles-csenc/single-line.txt', 'rb') as f:
+                core.decrypt_stream(f, outstream, private_key=PRIVATE_KEY)
+        assert outstream.getvalue() == b'Just a single line, no newline character at the end...'
+
+def test_decrypt_single_line_stream_fails_without_key():
+        outstream = io.BytesIO()
+        try:
+                with open('tests/testfiles-csenc/single-line.txt', 'rb') as f:
+                        core.decrypt_stream(f, outstream)
+                assert False, 'expected exception'
+        except Exception as e:
+                assert_that(e.args[0]).matches('not enough information to decrypt')

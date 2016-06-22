@@ -187,7 +187,7 @@ def lz4_uncompress(data):
                 os.remove(decompr_file.name)
 
 
-def decrypt_stream(instream, outstream, password):
+def decrypt_stream(instream, outstream, password=None, private_key=None):
 
         decryptor = None
         decrypted_data = b''
@@ -195,8 +195,14 @@ def decrypt_stream(instream, outstream, password):
         for (key,value) in decode_csenc_stream(instream):
                 for case in switch(key):
                         if case('enc_key1'):
-                                session_key = decrypted_with_password(base64.b64decode(value.encode('ascii')), password)
-                                decryptor = decryptor_with_password(session_key)
+                                if password != None:
+                                        session_key = decrypted_with_password(base64.b64decode(value.encode('ascii')), password)
+                                        decryptor = decryptor_with_password(session_key)
+                                break
+                        if case('enc_key2'):
+                                if private_key != None:
+                                        session_key = decrypted_with_private_key(base64.b64decode(value.encode('ascii')), private_key)
+                                        decryptor = decryptor_with_password(session_key)
                                 break
                         if case('version'):
                                 expected_version_number = OrderedDict([('major',1),('minor',0)])
@@ -205,10 +211,9 @@ def decrypt_stream(instream, outstream, password):
                                                 ' instead of expected ' + str(expected_version_number))
                                 break
                         if case(None):
+                                if decryptor == None:
+                                        raise Exception('not enough information to decrypt data')
                                 decrypted_data += decryptor_update(decryptor, value)
                                 break
-
-        if decryptor == None:
-                raise Exception('not enough information to decrypt data')
 
         outstream.write(lz4_uncompress(decrypted_data))
