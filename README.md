@@ -97,7 +97,6 @@ The current code is still basic and does not provide enough explanation yet.  I'
 * Rename `core` to `algorithm`?
 * Full documentation of the algorithm in the 'core' module.
 * Add algorithm diagram.
-* Perform the decryption in a streaming mode.
 * Do LZ4-decompression on files (not in memory), in place; move to `util` module.
 * Support `encrypt` = 0 and `compress` = 0 modes.  (It is an error if either of these fields is not specified.)
 * Add verification of `@SynologyCloudSync/cloudsync_encrypt.info` file using password and/or private key.
@@ -105,7 +104,6 @@ The current code is still basic and does not provide enough explanation yet.  I'
 
 ## Command-line decryption tool
 
-* Add unit tests.
 * Decrypt directories recursively.
 * Read password from file (instead of command line) (check single line, strip leading/trailing whitespace, warning if not printable ASCII).
 * Make log level configurable (default: warning).
