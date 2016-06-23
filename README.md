@@ -105,7 +105,7 @@ The current code is still basic and does not provide enough explanation yet.  I'
 ## Command-line decryption tool
 
 * Decrypt directories recursively.
-* Read password from file (instead of command line) (check single line, strip leading/trailing whitespace, warning if not printable ASCII).
+* Check password file: check single line, warning if not printable ASCII.
 * Make log level configurable (default: warning).
 * Add `--verify` option, to check decryptability and file structure.
 * Make `--verify` option also verify `@SynologyCloudSync/cloudsync_encrypt.info` files.

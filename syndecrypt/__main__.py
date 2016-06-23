@@ -4,16 +4,16 @@ synology-decrypt:
  Synology's Cloud Sync encryption algorithm
 
 Usage:
-  syndecrypt (-p <password> | -k <private.pem>) -O <directory> <encrypted-file>...
+  syndecrypt (-p <password-file> | -k <private.pem>) -O <directory> <encrypted-file>...
   syndecrypt (-h | --help)
 
 Options:
   -O <directory> --output-directory=<directory>
                            Output directory
-  -p <password> --password=<password>
-                           The decryption password
-  -k <private.pem> --keyfile=<private.pem>
-                           The decryption private key
+  -p <password-file> --password-file=<password-file>
+                           The file containing the decryption password
+  -k <private.pem> --key-file=<private.pem>
+                           The file containing the decryption private key
   -h --help                Show this screen.
 
 For more information, see https://github.com/marnix/synology-decrypt
@@ -27,13 +27,15 @@ import syndecrypt.util as util
 
 arguments = docopt.docopt(__doc__)
 
-password = arguments['--password']
-if password != None:
-        password = password.encode('ascii') # TODO: which encoding?
+password_file_name = arguments['--password-file']
+if password_file_name != None:
+        password = util._binary_contents_of(password_file_name).strip()
+else: password = None
 
-private_key_file_name = arguments['--keyfile']
+private_key_file_name = arguments['--key-file']
 if private_key_file_name != None:
         private_key = util._binary_contents_of(private_key_file_name)
+else: private_key = None
 
 output_dir = arguments['--output-directory']
 
