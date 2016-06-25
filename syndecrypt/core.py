@@ -168,52 +168,32 @@ def decode_csenc_stream(f):
                         yield (None, obj['data'])
 
 
-def lz4_uncompress(data):
-        import tempfile
-        import subprocess
-        import os
-        try:
-                compr_file = tempfile.NamedTemporaryFile(delete=False)
-                compr_file.write(data)
-                compr_file.close()
-
-                decompr_file = tempfile.NamedTemporaryFile(delete=True)
-                decompr_file.close()
-
-                subprocess.check_call(['lz4', '-d', compr_file.name, decompr_file.name])
-                return util._binary_contents_of(decompr_file.name)
-        finally:
-                os.remove(compr_file.name)
-                os.remove(decompr_file.name)
-
-
 def decrypt_stream(instream, outstream, password=None, private_key=None):
 
         decryptor = None
-        decrypted_data = b''
 
-        for (key,value) in decode_csenc_stream(instream):
-                for case in switch(key):
-                        if case('enc_key1'):
-                                if password != None:
-                                        session_key = decrypted_with_password(base64.b64decode(value.encode('ascii')), password)
-                                        decryptor = decryptor_with_password(session_key)
-                                break
-                        if case('enc_key2'):
-                                if private_key != None:
-                                        session_key = decrypted_with_private_key(base64.b64decode(value.encode('ascii')), private_key)
-                                        decryptor = decryptor_with_password(session_key)
-                                break
-                        if case('version'):
-                                expected_version_number = OrderedDict([('major',1),('minor',0)])
-                                if value != expected_version_number:
-                                        raise Exception('found version number ' + str(value) + \
-                                                ' instead of expected ' + str(expected_version_number))
-                                break
-                        if case(None):
-                                if decryptor == None:
-                                        raise Exception('not enough information to decrypt data')
-                                decrypted_data += decryptor_update(decryptor, value)
-                                break
-
-        outstream.write(lz4_uncompress(decrypted_data))
+        with util.Lz4Decompressor(decompressed_chunk_handler=outstream.write) as decompressor:
+                for (key,value) in decode_csenc_stream(instream):
+                        for case in switch(key):
+                                if case('enc_key1'):
+                                        if password != None:
+                                                session_key = decrypted_with_password(base64.b64decode(value.encode('ascii')), password)
+                                                decryptor = decryptor_with_password(session_key)
+                                        break
+                                if case('enc_key2'):
+                                        if private_key != None:
+                                                session_key = decrypted_with_private_key(base64.b64decode(value.encode('ascii')), private_key)
+                                                decryptor = decryptor_with_password(session_key)
+                                        break
+                                if case('version'):
+                                        expected_version_number = OrderedDict([('major',1),('minor',0)])
+                                        if value != expected_version_number:
+                                                raise Exception('found version number ' + str(value) + \
+                                                        ' instead of expected ' + str(expected_version_number))
+                                        break
+                                if case(None):
+                                        if decryptor == None:
+                                                raise Exception('not enough information to decrypt data')
+                                        decrypted_chunk = decryptor_update(decryptor, value)
+                                        decompressor.write(decrypted_chunk)
+                                        break
