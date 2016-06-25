@@ -60,6 +60,12 @@ def test_salted_hash():
         assert core.is_salted_hash_correct(password_hash, PASSWORD)
 
 
+def lz4_uncompress(compressed_data):
+        result = io.BytesIO()
+        with util.Lz4Decompressor(decompressed_chunk_handler=result.write) as decompressor:
+                decompressor.write(compressed_data)
+        return result.getvalue()
+
 def test_decode_single_line_file():
         with open('tests/testfiles-csenc/single-line.txt', 'rb') as f:
                 s = core.decode_csenc_stream(f)
@@ -79,7 +85,7 @@ def test_decode_single_line_file():
 
                 session_key = b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
                 decrypted_compressed_data = core.decrypted_with_password(data, session_key)
-                decrypted_uncompressed_data = core.lz4_uncompress(decrypted_compressed_data)
+                decrypted_uncompressed_data = lz4_uncompress(decrypted_compressed_data)
                 assert decrypted_uncompressed_data == b'Just a single line, no newline character at the end...'
 
 
