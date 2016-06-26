@@ -172,15 +172,21 @@ def decrypt_stream(instream, outstream, password=None, private_key=None):
 
         decryptor = None
         decrypt_stream.md5_digestor = None # special kind of local variable...
+        expected_md5_digest = None
 
-        def handle_decompressed_chunk(decompressed_chunk):
+        def outstream_writer_and_md5_digestor(decompressed_chunk):
                 outstream.write(decompressed_chunk)
                 if decrypt_stream.md5_digestor != None:
                         decrypt_stream.md5_digestor.update(decompressed_chunk)
 
-        with util.Lz4Decompressor(decompressed_chunk_handler=handle_decompressed_chunk) as decompressor:
+        with util.Lz4Decompressor(decompressed_chunk_handler=outstream_writer_and_md5_digestor) as decompressor:
                 for (key,value) in decode_csenc_stream(instream):
                         for case in switch(key):
+                                if case('digest'):
+                                        if value != 'md5':
+                                                LOGGER.warning('found unexpected digest "%s": cannot verify checksum', value)
+                                        decrypt_stream.md5_digestor = hashlib.md5()
+                                        break
                                 if case('enc_key1'):
                                         if password != None:
                                                 session_key = decrypted_with_password(base64.b64decode(value.encode('ascii')), password)
@@ -197,11 +203,6 @@ def decrypt_stream(instream, outstream, password=None, private_key=None):
                                                 raise Exception('found version number ' + str(value) + \
                                                         ' instead of expected ' + str(expected_version_number))
                                         break
-                                if case('digest'):
-                                        if value != 'md5':
-                                                LOGGER.warning('found unexpected digest "%s": cannot verify checksum', value)
-                                        decrypt_stream.md5_digestor = hashlib.md5()
-                                        break
                                 if case(None):
                                         if decryptor == None:
                                                 raise Exception('not enough information to decrypt data')
@@ -209,8 +210,10 @@ def decrypt_stream(instream, outstream, password=None, private_key=None):
                                         decompressor.write(decrypted_chunk)
                                         break
                                 if case('file_md5'):
-                                        if decrypt_stream.md5_digestor != None:
-                                                decompressor.close() # after this, all decompressed chunks were handled
-                                                actual_md5_digest = decrypt_stream.md5_digestor.hexdigest()
-                                                if actual_md5_digest != value:
-                                                        raise Exception('expected md5 digest %s but found %s', value, actual_md5_digest)
+                                        expected_md5_digest = value
+                                        break
+
+        if decrypt_stream.md5_digestor != None and expected_md5_digest != None:
+                actual_md5_digest = decrypt_stream.md5_digestor.hexdigest()
+                if actual_md5_digest != expected_md5_digest:
+                        raise Exception('expected md5 digest %s but found %s', expected_md5_digest, actual_md5_digest)
