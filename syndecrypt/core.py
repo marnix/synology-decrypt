@@ -170,6 +170,7 @@ def decode_csenc_stream(f):
 
 def decrypt_stream(instream, outstream, password=None, private_key=None):
 
+        session_key = None
         decryptor = None
         decrypt_stream.md5_digestor = None # special kind of local variable...
         expected_md5_digest = None
@@ -196,6 +197,21 @@ def decrypt_stream(instream, outstream, password=None, private_key=None):
                                         if private_key != None:
                                                 session_key = decrypted_with_private_key(base64.b64decode(value.encode('ascii')), private_key)
                                                 decryptor = decryptor_with_password(session_key)
+                                        break
+                                if case('key1_hash'):
+                                        if password != None:
+                                                actual_password_hash = salted_hash_of(value[:10], password)
+                                                if value != actual_password_hash:
+                                                        LOGGER.warning('found key1_hash %s but expected %s', actual_password_hash, value)
+                                        break
+                                if case('key2_hash'):
+                                        # TODO: verify some public/private key pair hash here
+                                        break
+                                if case('session_key_hash'):
+                                        if session_key != None:
+                                                actual_session_key_hash = salted_hash_of(value[:10], session_key)
+                                                if value != actual_session_key_hash:
+                                                        LOGGER.warning('found session_key_hash %s but expected %s', actual_session_key_hash, value)
                                         break
                                 if case('version'):
                                         expected_version_number = OrderedDict([('major',1),('minor',0)])
