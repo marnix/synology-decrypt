@@ -37,18 +37,31 @@ def test_decrypt_enc_key1_v1():
 
 def test_decrypt_enc_key1_v3():
         """
-        Test that we can do the equivalent of TODO SOMETHING LIKE THIS
+        Test that we can do the equivalent of (TODO find an openssl command that gives this output)
 
           $ echo '6Gbow/t0ltbdXw2L79IS41HTVY7ffwl7vlmUs4CCOmtoqSIdxDxTcmt2cmjE38AfkvmTg0BwcK5WIsEMJwA81NS8vaHUv74D9XhPXMRclbM=' | openssl enc -aes256 -d -a -pass pass:'buJx9/y9fV' -S 0d7ce9e152ae
-          ???
+          EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215
         """
 
         salt = 'DXzp4VKu' # hex: '0d7ce9e152ae'
         enc_key1 = b'6Gbow/t0ltbdXw2L79IS41HTVY7ffwl7vlmUs4CCOmtoqSIdxDxTcmt2cmjE38AfkvmTg0BwcK5WIsEMJwA81NS8vaHUv74D9XhPXMRclbM='
         enc_key1_binary = base64.b64decode(enc_key1)
-        assert core.decrypted_with_password(enc_key1_binary, PASSWORD) == b'???'
+        assert core.decrypted_with_password(enc_key1_binary, PASSWORD) == b'EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215'
 
-def test_decrypt_enc_key2():
+def test_decrypt_enc_key2_v1():
+        """
+        Test that we can do the equivalent of
+
+          $ echo 'E+WD7iAnJibEDt6wtzoJq34MIu4s0sUSOnkCJcr85LcnI9hI6M2RQsQvhCZsWbxW0OXltkoVNvJX1UUVi13NyyEdNax1lPAmgGig8dEKAt0hEH8fNHS0N4A5xNwtFzqDKlFw5Jfiqq1Hw+yXzZ5PXz0Z1I3ORa/JwfK1L4lp3wDGiGrR1CVxHCgjm+Ncg9yM7UAAFydVPH8AenzOEKFyGcbmv6vibHNSGraBTrxEZBsxu1bnbH4eW5jpNNpoyjib1F7W4RE2qSI+DU7F4tij8GiePuMyihdg5SjMerEcvOQWDqHGsQ6IbXeYnGgZQ+bPd7EONsI4uYrUgENKId73Zw==' \
+              | base64 -d | openssl rsautl -decrypt -inkey tests/testfiles-secrets/private.pem -oaep
+          EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215
+        """
+        enc_key2 = b'E+WD7iAnJibEDt6wtzoJq34MIu4s0sUSOnkCJcr85LcnI9hI6M2RQsQvhCZsWbxW0OXltkoVNvJX1UUVi13NyyEdNax1lPAmgGig8dEKAt0hEH8fNHS0N4A5xNwtFzqDKlFw5Jfiqq1Hw+yXzZ5PXz0Z1I3ORa/JwfK1L4lp3wDGiGrR1CVxHCgjm+Ncg9yM7UAAFydVPH8AenzOEKFyGcbmv6vibHNSGraBTrxEZBsxu1bnbH4eW5jpNNpoyjib1F7W4RE2qSI+DU7F4tij8GiePuMyihdg5SjMerEcvOQWDqHGsQ6IbXeYnGgZQ+bPd7EONsI4uYrUgENKId73Zw=='
+        enc_key2_binary = base64.b64decode(enc_key2)
+
+        assert core.decrypted_with_private_key(enc_key2_binary, PRIVATE_KEY) == b'EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215'
+
+def test_decrypt_enc_key2_v3():
         """
         Test that we can do the equivalent of
 
