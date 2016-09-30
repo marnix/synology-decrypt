@@ -23,7 +23,7 @@ def test_decode_int():
         assert core._continue_read_int_from(io.BytesIO(b'\x02\x80\x02')) == 32768 + 2
 
 
-def test_decrypt_enc_key1():
+def test_decrypt_enc_key1_v1():
         """
         Test that we can do the equivalent of
 
@@ -34,6 +34,19 @@ def test_decrypt_enc_key1():
         enc_key1 = b'f662PyjwrkzR61qSRHyBEVkXVd7STUpV6o7IrJs+m8gN1haqmBtMzLvq2/Gj134r'
         enc_key1_binary = base64.b64decode(enc_key1)
         assert core.decrypted_with_password(enc_key1_binary, PASSWORD) == b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
+
+def test_decrypt_enc_key1_v3():
+        """
+        Test that we can do the equivalent of TODO SOMETHING LIKE THIS
+
+          $ echo '6Gbow/t0ltbdXw2L79IS41HTVY7ffwl7vlmUs4CCOmtoqSIdxDxTcmt2cmjE38AfkvmTg0BwcK5WIsEMJwA81NS8vaHUv74D9XhPXMRclbM=' | openssl enc -aes256 -d -a -pass pass:'buJx9/y9fV' -S 0d7ce9e152ae
+          ???
+        """
+
+        salt = 'DXzp4VKu' # hex: '0d7ce9e152ae'
+        enc_key1 = b'6Gbow/t0ltbdXw2L79IS41HTVY7ffwl7vlmUs4CCOmtoqSIdxDxTcmt2cmjE38AfkvmTg0BwcK5WIsEMJwA81NS8vaHUv74D9XhPXMRclbM='
+        enc_key1_binary = base64.b64decode(enc_key1)
+        assert core.decrypted_with_password(enc_key1_binary, PASSWORD) == b'???'
 
 def test_decrypt_enc_key2():
         """
@@ -66,8 +79,8 @@ def lz4_uncompress(compressed_data):
                 decompressor.write(compressed_data)
         return result.getvalue()
 
-def test_decode_single_line_file():
-        with open('tests/testfiles-csenc/single-line.txt', 'rb') as f:
+def test_decode_single_line_file_v1():
+        with open('tests/testfiles-v1/csenc/single-line.txt', 'rb') as f:
                 s = core.decode_csenc_stream(f)
                 assert next(s) == ('compress', 1)
                 assert next(s) == ('digest', 'md5')
@@ -89,22 +102,58 @@ def test_decode_single_line_file():
                 assert decrypted_uncompressed_data == b'Just a single line, no newline character at the end...'
 
 
-def test_decrypt_single_line_stream_with_password():
+def test_decode_single_line_file_v3():
+        with open('tests/testfiles-v3/csenc/ssingle-line.txt', 'rb') as f:
+                s = core.decode_csenc_stream(f)
+                assert next(s) == ('compress', 1)
+                assert next(s) == ('digest', 'md5')
+                assert next(s) == ('enc_key1', '6Gbow/t0ltbdXw2L79IS41HTVY7ffwl7vlmUs4CCOmtoqSIdxDxTcmt2cmjE38AfkvmTg0BwcK5WIsEMJwA81NS8vaHUv74D9XhPXMRclbM=')
+                assert next(s) == ('enc_key2', 'E+WD7iAnJibEDt6wtzoJq34MIu4s0sUSOnkCJcr85LcnI9hI6M2RQsQvhCZsWbxW0OXltkoVNvJX1UUVi13NyyEdNax1lPAmgGig8dEKAt0hEH8fNHS0N4A5xNwtFzqDKlFw5Jfiqq1Hw+yXzZ5PXz0Z1I3ORa/JwfK1L4lp3wDGiGrR1CVxHCgjm+Ncg9yM7UAAFydVPH8AenzOEKFyGcbmv6vibHNSGraBTrxEZBsxu1bnbH4eW5jpNNpoyjib1F7W4RE2qSI+DU7F4tij8GiePuMyihdg5SjMerEcvOQWDqHGsQ6IbXeYnGgZQ+bPd7EONsI4uYrUgENKId73Zw==')
+                assert next(s) == ('encrypt', 1)
+                assert next(s) == ('file_name', 'ssingle-line.txt')
+                assert next(s) == ('key1_hash', 'uTVhxSKK1Da958d45e7a65a63f30cf527984e800f3')
+                assert next(s) == ('key2_hash', 'vNPKBAbNC9207d495491d14cfbb2a960274ff65796')
+                assert next(s) == ('salt', 'DXzp4VKu')
+                assert next(s) == ('session_key_hash', 'ofQaqQeFxY2b95456e59bf119d04cef906dd8f8046')
+                assert next(s) == ('version', collections.OrderedDict([('major', 3), ('minor', 0)]))
+                (none, data) = next(s)
+                assert none == None and isinstance(data, bytes) # a chunk of encrypted compressed data
+                assert next(s) == ('file_md5', 'e45f14e62971070603ff27c2bb05f5a4')
+
+                session_key = b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
+                decrypted_compressed_data = core.decrypted_with_password(data, session_key)
+                decrypted_uncompressed_data = lz4_uncompress(decrypted_compressed_data)
+                assert decrypted_uncompressed_data == b'Just a single line, no newline character at the end...'
+
+
+def test_decrypt_single_line_stream_with_password_v1():
         outstream = io.BytesIO()
-        with open('tests/testfiles-csenc/single-line.txt', 'rb') as f:
+        with open('tests/testfiles-v1/csenc/single-line.txt', 'rb') as f:
                 core.decrypt_stream(f, outstream, password=PASSWORD)
         assert outstream.getvalue() == b'Just a single line, no newline character at the end...'
 
-def test_decrypt_single_line_stream_with_private_key():
+def test_decrypt_single_line_stream_with_private_key_v1():
         outstream = io.BytesIO()
-        with open('tests/testfiles-csenc/single-line.txt', 'rb') as f:
+        with open('tests/testfiles-v1/csenc/single-line.txt', 'rb') as f:
+                core.decrypt_stream(f, outstream, private_key=PRIVATE_KEY)
+        assert outstream.getvalue() == b'Just a single line, no newline character at the end...'
+
+def test_decrypt_single_line_stream_with_password_v3():
+        outstream = io.BytesIO()
+        with open('tests/testfiles-v3/csenc/ssingle-line.txt', 'rb') as f:
+                core.decrypt_stream(f, outstream, password=PASSWORD)
+        assert outstream.getvalue() == b'Just a single line, no newline character at the end...'
+
+def test_decrypt_single_line_stream_with_private_key_v3():
+        outstream = io.BytesIO()
+        with open('tests/testfiles-v3/csenc/ssingle-line.txt', 'rb') as f:
                 core.decrypt_stream(f, outstream, private_key=PRIVATE_KEY)
         assert outstream.getvalue() == b'Just a single line, no newline character at the end...'
 
 def test_decrypt_single_line_stream_fails_without_key():
         outstream = io.BytesIO()
         try:
-                with open('tests/testfiles-csenc/single-line.txt', 'rb') as f:
+                with open('tests/testfiles-v1/csenc/single-line.txt', 'rb') as f:
                         core.decrypt_stream(f, outstream)
                 assert False, 'expected exception'
         except Exception as e:
