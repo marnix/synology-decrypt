@@ -214,10 +214,10 @@ def decrypt_stream(instream, outstream, password=None, private_key=None):
                                                         LOGGER.warning('found session_key_hash %s but expected %s', actual_session_key_hash, value)
                                         break
                                 if case('version'):
-                                        expected_version_number = OrderedDict([('major',1),('minor',0)])
-                                        if value != expected_version_number:
+                                        expected_version_numbers = [OrderedDict([('major',1),('minor',0)]), OrderedDict([('major',3),('minor',0)])]
+                                        if value not in expected_version_numbers:
                                                 raise Exception('found version number ' + str(value) + \
-                                                        ' instead of expected ' + str(expected_version_number))
+                                                        ' instead of one of the expected ' + str(expected_version_numbers))
                                         break
                                 if case(None):
                                         if decryptor == None:
