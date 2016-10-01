@@ -52,19 +52,6 @@ def test_decrypt_enc_key2_v1():
         """
         Test that we can do the equivalent of
 
-          $ echo 'E+WD7iAnJibEDt6wtzoJq34MIu4s0sUSOnkCJcr85LcnI9hI6M2RQsQvhCZsWbxW0OXltkoVNvJX1UUVi13NyyEdNax1lPAmgGig8dEKAt0hEH8fNHS0N4A5xNwtFzqDKlFw5Jfiqq1Hw+yXzZ5PXz0Z1I3ORa/JwfK1L4lp3wDGiGrR1CVxHCgjm+Ncg9yM7UAAFydVPH8AenzOEKFyGcbmv6vibHNSGraBTrxEZBsxu1bnbH4eW5jpNNpoyjib1F7W4RE2qSI+DU7F4tij8GiePuMyihdg5SjMerEcvOQWDqHGsQ6IbXeYnGgZQ+bPd7EONsI4uYrUgENKId73Zw==' \
-              | base64 -d | openssl rsautl -decrypt -inkey tests/testfiles-secrets/private.pem -oaep
-          EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215
-        """
-        enc_key2 = b'E+WD7iAnJibEDt6wtzoJq34MIu4s0sUSOnkCJcr85LcnI9hI6M2RQsQvhCZsWbxW0OXltkoVNvJX1UUVi13NyyEdNax1lPAmgGig8dEKAt0hEH8fNHS0N4A5xNwtFzqDKlFw5Jfiqq1Hw+yXzZ5PXz0Z1I3ORa/JwfK1L4lp3wDGiGrR1CVxHCgjm+Ncg9yM7UAAFydVPH8AenzOEKFyGcbmv6vibHNSGraBTrxEZBsxu1bnbH4eW5jpNNpoyjib1F7W4RE2qSI+DU7F4tij8GiePuMyihdg5SjMerEcvOQWDqHGsQ6IbXeYnGgZQ+bPd7EONsI4uYrUgENKId73Zw=='
-        enc_key2_binary = base64.b64decode(enc_key2)
-
-        assert core.decrypted_with_private_key(enc_key2_binary, PRIVATE_KEY) == b'EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215'
-
-def test_decrypt_enc_key2_v3():
-        """
-        Test that we can do the equivalent of
-
           $ echo 'ovVar7Zpi0HVPZ3CGmXRBhp4l1Q1BNNo0/uYfdwSg1GDD/MXNSMXcuAf65pYObUQsu4aCQc82LldLINkUSFyoPYUDe5YKh4Fv3993YQ7CPYk5RrWem2CGntdjmS1J5KV9YHa7bF2l6wMT2FiFvfd+/3Pikadb/fqOC/hN5hx2kA2c5n3FltCGehhfW97Bb3aLEZaOJ8rpoPuHDIa6yxhstCHrajnb0870KprqSfFZUdin1G1hqpwJ+1gm7CmFkjKA6QqMD5dx7bru69g98VwrqYqGmYR3lmJuMI0wJn7WwbciWCOQV5fnfMMxiAiZ0DK1fseqWxMIYUk3lVOcAA3KA==' \
               | base64 -d | openssl rsautl -decrypt -inkey tests/testfiles-secrets/private.pem -oaep
           BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6
@@ -74,14 +61,37 @@ def test_decrypt_enc_key2_v3():
 
         assert core.decrypted_with_private_key(enc_key2_binary, PRIVATE_KEY) == b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
 
+def test_decrypt_enc_key2_v3():
+        """
+        Test that we can do the equivalent of
 
-def test_salted_hash():
+          $ echo 'E+WD7iAnJibEDt6wtzoJq34MIu4s0sUSOnkCJcr85LcnI9hI6M2RQsQvhCZsWbxW0OXltkoVNvJX1UUVi13NyyEdNax1lPAmgGig8dEKAt0hEH8fNHS0N4A5xNwtFzqDKlFw5Jfiqq1Hw+yXzZ5PXz0Z1I3ORa/JwfK1L4lp3wDGiGrR1CVxHCgjm+Ncg9yM7UAAFydVPH8AenzOEKFyGcbmv6vibHNSGraBTrxEZBsxu1bnbH4eW5jpNNpoyjib1F7W4RE2qSI+DU7F4tij8GiePuMyihdg5SjMerEcvOQWDqHGsQ6IbXeYnGgZQ+bPd7EONsI4uYrUgENKId73Zw==' \
+              | base64 -d | openssl rsautl -decrypt -inkey tests/testfiles-secrets/private.pem -oaep
+          EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215
+        """
+        enc_key2 = b'E+WD7iAnJibEDt6wtzoJq34MIu4s0sUSOnkCJcr85LcnI9hI6M2RQsQvhCZsWbxW0OXltkoVNvJX1UUVi13NyyEdNax1lPAmgGig8dEKAt0hEH8fNHS0N4A5xNwtFzqDKlFw5Jfiqq1Hw+yXzZ5PXz0Z1I3ORa/JwfK1L4lp3wDGiGrR1CVxHCgjm+Ncg9yM7UAAFydVPH8AenzOEKFyGcbmv6vibHNSGraBTrxEZBsxu1bnbH4eW5jpNNpoyjib1F7W4RE2qSI+DU7F4tij8GiePuMyihdg5SjMerEcvOQWDqHGsQ6IbXeYnGgZQ+bPd7EONsI4uYrUgENKId73Zw=='
+        enc_key2_binary = base64.b64decode(enc_key2)
+
+        assert core.decrypted_with_private_key(enc_key2_binary, PRIVATE_KEY) == b'EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215'
+
+
+def test_salted_hash_v1():
         session_key = b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
         session_key_hash = 'jM41by6vAd517830d42bfb52eae9b58cd41eac95b0'
         assert core.salted_hash_of(session_key_hash[:10], session_key) == session_key_hash
         assert core.is_salted_hash_correct(session_key_hash, session_key)
 
         password_hash = '4ZF3pd4Y17c7cf0f016aada3f8398d22c8708d8649'
+        assert core.salted_hash_of(password_hash[:10], PASSWORD) == password_hash
+        assert core.is_salted_hash_correct(password_hash, PASSWORD)
+
+def test_salted_hash_v3():
+        session_key = b'EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215'
+        session_key_hash = 'ofQaqQeFxY2b95456e59bf119d04cef906dd8f8046'
+        assert core.salted_hash_of(session_key_hash[:10], session_key) == session_key_hash
+        assert core.is_salted_hash_correct(session_key_hash, session_key)
+
+        password_hash = 'uTVhxSKK1Da958d45e7a65a63f30cf527984e800f3'
         assert core.salted_hash_of(password_hash[:10], PASSWORD) == password_hash
         assert core.is_salted_hash_correct(password_hash, PASSWORD)
 
@@ -133,7 +143,7 @@ def test_decode_single_line_file_v3():
                 assert none == None and isinstance(data, bytes) # a chunk of encrypted compressed data
                 assert next(s) == ('file_md5', 'e45f14e62971070603ff27c2bb05f5a4')
 
-                session_key = b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
+                session_key = b'EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215'
                 decrypted_compressed_data = core.decrypted_with_password(data, session_key)
                 decrypted_uncompressed_data = lz4_uncompress(decrypted_compressed_data)
                 assert decrypted_uncompressed_data == b'Just a single line, no newline character at the end...'
@@ -145,16 +155,16 @@ def test_decrypt_single_line_stream_with_password_v1():
                 core.decrypt_stream(f, outstream, password=PASSWORD)
         assert outstream.getvalue() == b'Just a single line, no newline character at the end...'
 
-def test_decrypt_single_line_stream_with_private_key_v1():
-        outstream = io.BytesIO()
-        with open('tests/testfiles-v1/csenc/single-line.txt', 'rb') as f:
-                core.decrypt_stream(f, outstream, private_key=PRIVATE_KEY)
-        assert outstream.getvalue() == b'Just a single line, no newline character at the end...'
-
 def test_decrypt_single_line_stream_with_password_v3():
         outstream = io.BytesIO()
         with open('tests/testfiles-v3/csenc/ssingle-line.txt', 'rb') as f:
                 core.decrypt_stream(f, outstream, password=PASSWORD)
+        assert outstream.getvalue() == b'Just a single line, no newline character at the end...'
+
+def test_decrypt_single_line_stream_with_private_key_v1():
+        outstream = io.BytesIO()
+        with open('tests/testfiles-v1/csenc/single-line.txt', 'rb') as f:
+                core.decrypt_stream(f, outstream, private_key=PRIVATE_KEY)
         assert outstream.getvalue() == b'Just a single line, no newline character at the end...'
 
 def test_decrypt_single_line_stream_with_private_key_v3():
