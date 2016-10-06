@@ -51,7 +51,10 @@ def strip_PKCS7_padding(data):
         raise ValueError("invalid length")
     pad = bytearray(data)[-1]
     if pad > 16:
-        raise ValueError("invalid padding byte")
+        raise ValueError("invalid padding byte at end of " + repr(data))
+    for i in range(-pad, 0):
+        if bytearray(data)[i] != pad:
+            raise ValueError("invalid padding byte at " + str(i) + " in " + repr(data))
     return data[:-pad]
 
 
