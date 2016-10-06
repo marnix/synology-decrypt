@@ -157,8 +157,6 @@ def decode_csenc_stream(f):
         if s != magic_hash:
                 LOGGER.error('magic hash should not be ' + str(s) + ' but ' + str(magic_hash))
 
-        metadata = {}
-        data = b''
         for obj in _read_objects_from(f):
                 assert isinstance(obj, dict)
                 if obj['type'] == 'metadata':
