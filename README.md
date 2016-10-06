@@ -36,6 +36,8 @@ project.  Thanks!
 Travis CI says: [![Build
 Status](https://travis-ci.org/marnix/synology-decrypt.svg?branch=master)](https://travis-ci.org/marnix/synology-decrypt)
 
+Codacy says: [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f0a4a700858b4795829b02d5156b6075)](https://www.codacy.com/app/marnix-klooster-github-com/synology-decrypt?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=marnix/synology-decrypt&amp;utm_campaign=Badge_Grade)
+
 # License
 
 The code in this repository is licensed under the GPLv3; see LICENSE.txt for
@@ -91,6 +93,7 @@ The current code is still basic and does not provide enough explanation yet.  I'
 
 ## Core decryption algorithm
 
+* Support new file format 3.0.
 * Investigate what key2_hash is a hash of.
 * Warn for any known field that is missing, and for every unknown field.
 * Rename `core` to `algorithm`?

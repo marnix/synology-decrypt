@@ -5,7 +5,6 @@ import syndecrypt.util as util
 import collections
 
 from assertpy import assert_that
-import sys
 import base64
 import io
 import logging

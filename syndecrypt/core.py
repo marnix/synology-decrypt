@@ -51,7 +51,10 @@ def strip_PKCS7_padding(data):
         raise ValueError("invalid length")
     pad = bytearray(data)[-1]
     if pad > 16:
-        raise ValueError("invalid padding byte")
+        raise ValueError("invalid padding byte at end of " + repr(data))
+    for i in range(-pad, 0):
+        if bytearray(data)[i] != pad:
+            raise ValueError("invalid padding byte at " + str(i) + " in " + repr(data))
     return data[:-pad]
 
 
@@ -157,8 +160,6 @@ def decode_csenc_stream(f):
         if s != magic_hash:
                 LOGGER.error('magic hash should not be ' + str(s) + ' but ' + str(magic_hash))
 
-        metadata = {}
-        data = b''
         for obj in _read_objects_from(f):
                 assert isinstance(obj, dict)
                 if obj['type'] == 'metadata':
