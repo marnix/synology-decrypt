@@ -5,7 +5,6 @@ from Crypto.Cipher import AES
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 import hashlib
-from passlib.utils.pbkdf2 import pbkdf1
 
 import logging
 import struct
@@ -18,15 +17,18 @@ LOGGER=logging.getLogger(__name__)
 # this is the algorithm by which 'openssl enc' generates
 # a key and an iv from a password.
 #
-# Synology Cloud Synd encryption/decryption uses the same
+# Sources for this algorithm:
+# - https://github.com/openssl/openssl/blob/OpenSSL_1_0_1m/apps/enc.c#L540
+#   and https://github.com/openssl/openssl/blob/OpenSSL_1_0_1m/apps/enc.c#L347
+# - https://github.com/openssl/openssl/blob/OpenSSL_1_0_1m/crypto/evp/evp_key.c#L119
+#   and https://www.openssl.org/docs/manmaster/crypto/EVP_BytesToKey.html
+#
+# Synology Cloud Sync encryption/decryption uses the same
 # algorithm to generate key+iv from the password.
 
 # pwd and salt must be bytes objects
 def _openssl_kdf(algo, pwd, salt, key_size, iv_size):
-    if algo == 'md5':
-        temp = pbkdf1(pwd, salt, 1, 16, 'md5')
-    else:
-        temp = b''
+    temp = b''
 
     fd = temp
     while len(fd) < key_size + iv_size:
@@ -39,8 +41,7 @@ def _openssl_kdf(algo, pwd, salt, key_size, iv_size):
     return key, iv
 
 def _hasher(algo, data):
-    hashes = {'md5': hashlib.md5, 'sha256': hashlib.sha256, 'sha512': hashlib.sha512}
-    h = hashes[algo]()
+    h = hashlib.new(algo)
     h.update(data)
     return h.digest()
 
