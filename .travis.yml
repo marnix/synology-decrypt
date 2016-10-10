@@ -1,8 +1,9 @@
 sudo: false
 language: python
 python:
+  # dropped Python 2.6 because I found OrderedDict (new in 2.7) very useful
   - "2.7"
-  - "3.2"
+  # dropped Python 3.2 because coverage.py and python-codady-coverage don't really support it
   - "3.3"
   - "3.4"
   - "3.5"
