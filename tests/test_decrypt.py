@@ -6,6 +6,7 @@ import collections
 
 from assertpy import assert_that
 import base64
+import binascii
 import io
 import logging
 
@@ -22,6 +23,21 @@ def test_decode_int():
         assert core._continue_read_int_from(io.BytesIO(b'\x02\x80\x02')) == 32768 + 2
 
 
+
+def test_keyiv_v1():
+        assert core._csenc_pbkdf(b'buJx9/y9fV', b'') == (
+                binascii.unhexlify('4F3E66EF6D006CFF64B332226E8F109DA8D0441F966FBA2948F55934F92AACB8'),
+                binascii.unhexlify('3ADCF6A17E01689567E1C6C6856112B1')
+                )
+
+def test_keyiv_v3():
+        assert core._csenc_pbkdf(b'buJx9/y9fV', b'DXzp4VKu') == (
+                binascii.unhexlify('74DCF4660DA7FDE6B18B88E48D72D7E6E9EC48D13995D420FE3CE7DF71E62B04'),
+                binascii.unhexlify('95487A753CD99A7D8E8B19280455E151')
+                )
+
+
+
 def test_decrypt_enc_key1_v1():
         """
         Test that we can do the equivalent of
@@ -32,20 +48,22 @@ def test_decrypt_enc_key1_v1():
 
         enc_key1 = b'f662PyjwrkzR61qSRHyBEVkXVd7STUpV6o7IrJs+m8gN1haqmBtMzLvq2/Gj134r'
         enc_key1_binary = base64.b64decode(enc_key1)
-        assert core.decrypted_with_password(enc_key1_binary, PASSWORD) == b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
+        assert core.decrypted_with_password(enc_key1_binary, PASSWORD, salt=b'') == b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
 
 def test_decrypt_enc_key1_v3():
         """
-        Test that we can do the equivalent of (TODO find an openssl command that gives this output)
+        Test that we can do the equivalent of the following, except with
+        an OpenSSL key/iv algorithm that hashes 1000 times instead of
+        OpenSSL's 1.
 
-          $ echo '6Gbow/t0ltbdXw2L79IS41HTVY7ffwl7vlmUs4CCOmtoqSIdxDxTcmt2cmjE38AfkvmTg0BwcK5WIsEMJwA81NS8vaHUv74D9XhPXMRclbM=' | openssl enc -aes256 -d -a -pass pass:'buJx9/y9fV' -S 0d7ce9e152ae
+          $ echo '6Gbow/t0ltbdXw2L79IS41HTVY7ffwl7vlmUs4CCOmtoqSIdxDxTcmt2cmjE38AfkvmTg0BwcK5WIsEMJwA81NS8vaHUv74D9XhPXMRclbM=' | openssl enc -aes256 -d -a -pass pass:'buJx9/y9fV'
           EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215
         """
 
-        salt = 'DXzp4VKu' # hex: '0d7ce9e152ae'
+        salt = b'DXzp4VKu'
         enc_key1 = b'6Gbow/t0ltbdXw2L79IS41HTVY7ffwl7vlmUs4CCOmtoqSIdxDxTcmt2cmjE38AfkvmTg0BwcK5WIsEMJwA81NS8vaHUv74D9XhPXMRclbM='
         enc_key1_binary = base64.b64decode(enc_key1)
-        assert core.decrypted_with_password(enc_key1_binary, PASSWORD) == b'EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215'
+        assert core.decrypted_with_password(enc_key1_binary, PASSWORD, salt=salt) == b'EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215'
 
 def test_decrypt_enc_key2_v1():
         """
@@ -119,7 +137,7 @@ def test_decode_single_line_file_v1():
                 assert next(s) == ('file_md5', 'e45f14e62971070603ff27c2bb05f5a4')
 
                 session_key = b'BxY2A-ouRpI8YRvmiWii5KkCF3LVN1O6'
-                decrypted_compressed_data = core.decrypted_with_password(data, session_key)
+                decrypted_compressed_data = core.decrypted_with_password(data, session_key, salt=b'')
                 decrypted_uncompressed_data = lz4_uncompress(decrypted_compressed_data)
                 assert decrypted_uncompressed_data == b'Just a single line, no newline character at the end...'
 
@@ -143,7 +161,7 @@ def test_decode_single_line_file_v3():
                 assert next(s) == ('file_md5', 'e45f14e62971070603ff27c2bb05f5a4')
 
                 session_key = b'EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215'
-                decrypted_compressed_data = core.decrypted_with_password(data, session_key)
+                decrypted_compressed_data = core.decrypted_with_password(data, session_key, salt=b'DXzp4VKu')
                 decrypted_uncompressed_data = lz4_uncompress(decrypted_compressed_data)
                 assert decrypted_uncompressed_data == b'Just a single line, no newline character at the end...'
 

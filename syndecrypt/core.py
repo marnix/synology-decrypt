@@ -28,16 +28,19 @@ LOGGER=logging.getLogger(__name__)
 
 # pwd and salt must be bytes objects
 def _openssl_kdf(algo, pwd, salt, key_size, iv_size):
-    temp = b''
+    count = 1 if salt == b'' else 1000
 
+    temp = b''
     fd = temp
     while len(fd) < key_size + iv_size:
-        temp = _hasher(algo, temp + pwd + salt)
+        hashed_count_times = temp + pwd + salt
+        for i in range(count):
+                hashed_count_times = _hasher(algo, hashed_count_times)
+        temp = hashed_count_times
         fd += temp
 
     key = fd[0:key_size]
     iv = fd[key_size:key_size+iv_size]
-
     return key, iv
 
 def _hasher(algo, data):
@@ -59,19 +62,19 @@ def strip_PKCS7_padding(data):
     return data[:-pad]
 
 
-def decrypted_with_password(ciphertext, password):
-        decryptor = _decryptor_with_keyiv(_csenc_pbkdf(password))
+def decrypted_with_password(ciphertext, password, salt):
+        decryptor = _decryptor_with_keyiv(_csenc_pbkdf(password, salt))
         plaintext = decryptor_update(decryptor, ciphertext)
         return plaintext
 
-def decryptor_with_password(password):
-        return _decryptor_with_keyiv(_csenc_pbkdf(password))
+def decryptor_with_password(password, salt):
+        return _decryptor_with_keyiv(_csenc_pbkdf(password, salt))
 
-def _csenc_pbkdf(password):
+def _csenc_pbkdf(password, salt):
         AES_KEY_SIZE_BITS = 256
         AES_IV_LENGTH_BYTES = AES.block_size
         assert AES_IV_LENGTH_BYTES == 16
-        (key,iv) = _openssl_kdf('md5', password, b'', AES_KEY_SIZE_BITS//8, AES_IV_LENGTH_BYTES)
+        (key,iv) = _openssl_kdf('md5', password, salt, AES_KEY_SIZE_BITS//8, AES_IV_LENGTH_BYTES)
         return (key,iv)
 
 def _decryptor_with_keyiv(key_iv_pair):
