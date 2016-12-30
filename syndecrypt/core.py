@@ -179,6 +179,10 @@ def decrypt_stream(instream, outstream, password=None, private_key=None):
         decryptor = None
         decrypt_stream.md5_digestor = None # special kind of local variable...
         expected_md5_digest = None
+        enc_key1_bytes = None
+        enc_key2_bytes = None
+        salt = b''
+        session_key_hash = None
 
         def outstream_writer_and_md5_digestor(decompressed_chunk):
                 outstream.write(decompressed_chunk)
@@ -194,14 +198,10 @@ def decrypt_stream(instream, outstream, password=None, private_key=None):
                                         decrypt_stream.md5_digestor = hashlib.md5()
                                         break
                                 if case('enc_key1'):
-                                        if password != None:
-                                                session_key = decrypted_with_password(base64.b64decode(value.encode('ascii')), password)
-                                                decryptor = decryptor_with_password(session_key)
+                                        enc_key1_bytes = base64.b64decode(value.encode('ascii'))
                                         break
                                 if case('enc_key2'):
-                                        if private_key != None:
-                                                session_key = decrypted_with_private_key(base64.b64decode(value.encode('ascii')), private_key)
-                                                decryptor = decryptor_with_password(session_key)
+                                        enc_key2_bytes = base64.b64decode(value.encode('ascii'))
                                         break
                                 if case('key1_hash'):
                                         if password != None:
@@ -212,21 +212,38 @@ def decrypt_stream(instream, outstream, password=None, private_key=None):
                                 if case('key2_hash'):
                                         # TODO: verify some public/private key pair hash here
                                         break
+                                if case('salt'):
+                                        salt = value.encode('ascii')
+                                        assert isinstance(salt, bytes)
+                                        break
                                 if case('session_key_hash'):
-                                        if session_key != None:
-                                                actual_session_key_hash = salted_hash_of(value[:10], session_key)
-                                                if value != actual_session_key_hash:
-                                                        LOGGER.warning('found session_key_hash %s but expected %s', actual_session_key_hash, value)
+                                        session_key_hash = value
                                         break
                                 if case('version'):
+                                        version = value
                                         expected_version_numbers = [OrderedDict([('major',1),('minor',0)]), OrderedDict([('major',3),('minor',0)])]
-                                        if value not in expected_version_numbers:
+                                        if version not in expected_version_numbers:
                                                 raise Exception('found version number ' + str(value) + \
                                                         ' instead of one of the expected ' + str(expected_version_numbers))
+                                        if (version['major'] > 1) != (salt != b''):
+                                                version_string = '%d.%d' % (version['major'], version['minor'])
+                                                LOGGER.warning('salt is expected in version 3+ (version: %s, salt present: %s)', version_string, (salt != b''))
                                         break
                                 if case(None):
                                         if decryptor == None:
-                                                raise Exception('not enough information to decrypt data')
+                                                if password != None and enc_key1_bytes != None:
+                                                        session_key = decrypted_with_password(enc_key1_bytes, password, salt)
+                                                elif private_key != None and enc_key2_bytes != None:
+                                                        session_key = decrypted_with_private_key(enc_key2_bytes, private_key)
+                                                if session_key == None:
+                                                        raise Exception('not enough information to decrypt data: need either password and enc_key1 or private key and enc_key2')
+                                                if session_key_hash == None:
+                                                        LOGGER.warning('did not find session_key_hash to verify the session key')
+                                                else:
+                                                        actual_session_key_hash = salted_hash_of(session_key_hash[:10], session_key)
+                                                        if session_key_hash != actual_session_key_hash:
+                                                                LOGGER.warning('found session_key_hash %s but expected %s', actual_session_key_hash, session_key_hash)
+                                                decryptor = decryptor_with_password(session_key, salt)
                                         decrypted_chunk = decryptor_update(decryptor, value)
                                         decompressor.write(decrypted_chunk)
                                         break
