@@ -159,6 +159,10 @@ def test_decode_single_line_file_v3():
                 (none, data) = next(s)
                 assert none == None and isinstance(data, bytes) # a chunk of encrypted compressed data
                 assert next(s) == ('file_md5', 'e45f14e62971070603ff27c2bb05f5a4')
+                try:
+                        next(s)
+                        assert False
+                except StopIteration: pass
 
                 session_key = b'EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215'
                 decrypted_compressed_data = core.decrypted_with_password(data, session_key, salt=b'DXzp4VKu')
