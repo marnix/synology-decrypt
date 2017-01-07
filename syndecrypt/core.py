@@ -63,7 +63,7 @@ def strip_PKCS7_padding(data):
 
 
 def decrypted_with_password(ciphertext, password, salt):
-        decryptor = _decryptor_with_keyiv(_csenc_pbkdf(password, salt))
+        decryptor = decryptor_with_password(password, salt)
         plaintext = decryptor_update(decryptor, ciphertext)
         return plaintext
 
