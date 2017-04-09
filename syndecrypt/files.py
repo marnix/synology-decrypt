@@ -3,11 +3,12 @@ import os
 import sys
 import logging
 
-import syndecrypt.core as core
+#import syndecrypt.core as core
+import core
 
 LOGGER=logging.getLogger(__name__)
 
-def decrypt_file(input_file_name, output_file_name, password=None, private_key=None):
+def decrypt_file(input_file_name, output_file_name, password=None, private_key=None, public_key=None):
         if not os.path.exists(input_file_name):
                 LOGGER.warn('skipping decryption of "%s": encrypted input file does not exist',
                         input_file_name
@@ -24,7 +25,7 @@ def decrypt_file(input_file_name, output_file_name, password=None, private_key=N
                         if not os.path.isdir(os.path.dirname(output_file_name)):
                                 os.makedirs(os.path.dirname(output_file_name))
                         with open(output_file_name, 'wb') as outstream:
-                                core.decrypt_stream(instream, outstream, password=password, private_key=private_key)
+                                core.decrypt_stream(instream, outstream, password=password, private_key=private_key, public_key=public_key)
         except:
                 LOGGER.error('decryption failed, exception occurred: %s: %s', sys.exc_info()[0], sys.exc_info()[1])
                 if os.path.exists(output_file_name):

@@ -93,8 +93,8 @@ The current code is still basic and does not provide enough explanation yet.  I'
 
 ## Core decryption algorithm
 
-* Support new file format 3.0.
-* Investigate what key2_hash is a hash of.
+* ~~Support new file format 3.0.~~
+* ~~Investigate what key2_hash is a hash of.~~
 * Warn for any known field that is missing, and for every unknown field.
 * Rename `core` to `algorithm`?
 * Full documentation of the algorithm in the 'core' module.
