@@ -208,7 +208,7 @@ def decrypt_stream(instream, outstream, password=None, private_key=None, public_
                 actual_public_key_hash = salted_hash_of(header['key2_hash'][:10], public_key)
                 if header['key2_hash'] != actual_public_key_hash:
                         LOGGER.warning('found key2_hash %s but expected %s', actual_public_key_hash, header['key2_hash'])
-                session_key = decrypted_with_private_key(base64.b64decode(value.encode('ascii')), private_key)
+                session_key = decrypted_with_private_key(base64.b64decode(header['enc_key2'].encode('ascii')), private_key)
                 decryptor = decryptor_with_password(session_key)
         else:
                 raise Exception("Key material is not found")
