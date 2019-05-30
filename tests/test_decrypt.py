@@ -165,7 +165,7 @@ def test_decode_single_line_file_v3():
                 except StopIteration: pass
 
                 session_key = b'EA23EB5F36B9008AC73498A8FC53884D1D7EFBA052F902F44B44D40409CBC215'
-                decrypted_compressed_data = core.decrypted_with_password(data, session_key, salt=b'DXzp4VKu')
+                decrypted_compressed_data = core.decrypted_with_password(data, binascii.unhexlify(session_key), salt=b'')
                 decrypted_uncompressed_data = lz4_uncompress(decrypted_compressed_data)
                 assert decrypted_uncompressed_data == b'Just a single line, no newline character at the end...'
 

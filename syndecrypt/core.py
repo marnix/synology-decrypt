@@ -10,6 +10,7 @@ import logging
 import struct
 from collections import OrderedDict
 import base64
+import binascii
 
 LOGGER=logging.getLogger(__name__)
 
@@ -243,7 +244,7 @@ def decrypt_stream(instream, outstream, password=None, private_key=None):
                                                         actual_session_key_hash = salted_hash_of(session_key_hash[:10], session_key)
                                                         if session_key_hash != actual_session_key_hash:
                                                                 LOGGER.warning('found session_key_hash %s but expected %s', actual_session_key_hash, session_key_hash)
-                                                decryptor = decryptor_with_password(session_key, salt)
+                                                decryptor = decryptor_with_password(binascii.unhexlify(session_key) if salt else session_key, salt=b'')
                                         decrypted_chunk = decryptor_update(decryptor, value)
                                         decompressor.write(decrypted_chunk)
                                         break
