@@ -7,14 +7,11 @@ python:
   - "3.3"
   - "3.4"
   - "3.5"
-  - "nightly" # currently points to 3.6-dev
+  - "3.6"
+  - "nightly" # currently points to 3.6-dev, probably
 
-addons:
-  apt:
-    sources:
-    - debian-sid
-    packages:
-    - liblz4-tool
+before_install:
+  - sudo apt-get install -y liblz4-tool
 
 # dependencies from requirements.txt are automatically installed
 
