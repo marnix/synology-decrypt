@@ -20,7 +20,11 @@ class switch(object):
     def __iter__(self):
         """Return the match method once, then stop"""
         yield self.match
-        raise StopIteration
+        # The original recipe #410692 also had
+        #   raise StopIteration
+        # but that is not working anymore in Python 3.7,
+        # (see e.g., https://code.activestate.com/lists/python-ideas/52936/)
+        # and doesn't seem to be necessary.
 
     def match(self, *args):
         """Indicate whether or not to enter a case suite"""
