@@ -6,7 +6,7 @@ matrix:
     # dropped Python 2.6 because I found OrderedDict (new in 2.7) very useful
     - python: 2.7
     # dropped Python 3.2 because coverage.py and python-codacy-coverage don't really support it
-    - python: 3.3
+    # dropped Python 3.3 because pycryptodome doesn't support it
     - python: 3.4
     - python: 3.5
     - python: 3.6
