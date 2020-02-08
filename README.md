@@ -25,6 +25,22 @@ source 'Synology Cloud Sync Decryption Tool', since I want to avoid doing
 things that might be construed to be illegal.)
 
 
+# How to install and run
+
+You need to download the source code and install a few dependencies:
+
+* `git clone` this repository.
+* Make sure you have Python installed (3.2 or later, or 2.7); Linux works, I've never tried it on Windows but that should also Just Work(tm).
+* Install all Python packages which are mentioned in `requirements.txt`, e.g. by running `pip install -r requirements.txt`.
+* Make sure you have **the `lz4` binary** on your `PATH`.
+   - On Ubuntu (at least 18.04) you can install it by running `apt install liblz4-tool` as root.
+
+This is a command line tool, and running it comes down to the following.
+
+* In the root folder of the cloned repository, run `python -m syndecrypt` followed by the supported command line arguments (leave out or add `-h` for usage information / help).
+
+*Note* that currently this tool does not traverse directories: You either mention all files explicitly on a single command line, either you run it repeatedly.
+
 # Feedback
 
 Feel very free to create a GitHub issue, create a pull request, or drop me a
@@ -63,7 +79,7 @@ all:
    https://help.synology.com/enu/utility/SynologyCloudSyncDecryptionTool which
    which contains the same infor as the KB article below.  It also returns
    404 fairly often.)
-   
+
  * Synology Knowledge Base article ["What is Synology Cloud Sync Decryption
    Tool?"](https://www.synology.com/en-global/knowledgebase/DSM/tutorial/Application/What_is_Synology_Cloud_Sync_Decryption_Tool)
    describing how to use the above decryption tool.
@@ -81,7 +97,7 @@ all:
    The above documents make it clear that the files are encrypted individually,
    and that each file can be decrypted using only the password or only
    `private.pem`.
- 
+
 Until now, there is only one unofficial source of information:
 
  - The answers and comments on my StackOverflow question: [What decryption algorithm is
