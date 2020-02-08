@@ -91,3 +91,6 @@ ENV/
 # Vim temp tiles
 .*.swp
 *~
+
+# Tag files
+/tags
