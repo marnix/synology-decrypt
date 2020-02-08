@@ -65,7 +65,7 @@ def strip_PKCS7_padding(data):
 
 def decrypted_with_password(ciphertext, password, salt):
         decryptor = decryptor_with_password(password, salt)
-        plaintext = decryptor_update(decryptor, ciphertext)
+        plaintext = strip_PKCS7_padding(decryptor.decrypt(ciphertext))
         return plaintext
 
 def decryptor_with_password(password, salt):
@@ -81,9 +81,6 @@ def _csenc_pbkdf(password, salt):
 def _decryptor_with_keyiv(key_iv_pair):
         (key,iv) = key_iv_pair
         return AES.new(key, AES.MODE_CBC, iv)
-
-def decryptor_update(decryptor, ciphertext):
-        return strip_PKCS7_padding(decryptor.decrypt(ciphertext))
 
 def decrypted_with_private_key(ciphertext, private_key):
         return PKCS1_OAEP.new(RSA.importKey(private_key)).decrypt(ciphertext)
@@ -191,6 +188,7 @@ def decrypt_stream(instream, outstream, password=None, private_key=None):
                         decrypt_stream.md5_digestor.update(decompressed_chunk)
 
         with util.Lz4Decompressor(decompressed_chunk_handler=outstream_writer_and_md5_digestor) as decompressor:
+                decrypted_chunk = None
                 for (key,value) in decode_csenc_stream(instream):
                         for case in switch(key):
                                 if case('digest'):
@@ -245,12 +243,15 @@ def decrypt_stream(instream, outstream, password=None, private_key=None):
                                                         if session_key_hash != actual_session_key_hash:
                                                                 LOGGER.warning('found session_key_hash %s but expected %s', actual_session_key_hash, session_key_hash)
                                                 decryptor = decryptor_with_password(binascii.unhexlify(session_key) if salt else session_key, salt=b'')
-                                        decrypted_chunk = decryptor_update(decryptor, value)
-                                        decompressor.write(decrypted_chunk)
+                                        if decrypted_chunk:
+                                                decompressor.write(decrypted_chunk)
+                                        decrypted_chunk = decryptor.decrypt(value)
                                         break
                                 if case('file_md5'):
                                         expected_md5_digest = value
                                         break
+                if decrypted_chunk:
+                        decompressor.write(strip_PKCS7_padding(decrypted_chunk))
 
         if decrypt_stream.md5_digestor != None and expected_md5_digest != None:
                 actual_md5_digest = decrypt_stream.md5_digestor.hexdigest()
