@@ -188,6 +188,20 @@ def test_decrypt_single_line_stream_with_password_v31():
                 core.decrypt_stream(f, outstream, password=PASSWORD)
         assert outstream.getvalue() == b'Just a single line, no newline character at the end...'
 
+def test_decrypt_larger_textfile_with_password_v31():
+        outstream = io.BytesIO()
+        with open('tests/testfiles-v3/csenc/5000words-3.1.txt', 'rb') as f:
+                core.decrypt_stream(f, outstream, password=PASSWORD)
+        with open('tests/testfiles-v3/plain/5000words-3.1.txt', 'rb') as f:
+                assert outstream.getvalue() == f.read()
+
+def test_decrypt_binary_stream_with_password_v31():
+        outstream = io.BytesIO()
+        with open('tests/testfiles-v3/csenc/42-bytes.txt', 'rb') as f:
+                core.decrypt_stream(f, outstream, password=PASSWORD)
+        with open('tests/testfiles-v3/plain/42-bytes.txt', 'rb') as f:
+                assert outstream.getvalue() == f.read()
+
 def test_decrypt_single_line_stream_with_private_key_v1():
         outstream = io.BytesIO()
         with open('tests/testfiles-v1/csenc/single-line.txt', 'rb') as f:
