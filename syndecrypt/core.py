@@ -1,9 +1,9 @@
 import syndecrypt.util as util
 from syndecrypt.util import switch
 
-from Crypto.Cipher import AES
-from Crypto.Cipher import PKCS1_OAEP
-from Crypto.PublicKey import RSA
+from Cryptodome.Cipher import AES
+from Cryptodome.Cipher import PKCS1_OAEP
+from Cryptodome.PublicKey import RSA
 import hashlib
 
 import logging
