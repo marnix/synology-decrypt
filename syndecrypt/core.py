@@ -222,7 +222,7 @@ def decrypt_stream(instream, outstream, password=None, private_key=None):
                                         break
                                 if case('version'):
                                         version = value
-                                        expected_version_numbers = [OrderedDict([('major',1),('minor',0)]), OrderedDict([('major',3),('minor',0)])]
+                                        expected_version_numbers = [OrderedDict([('major',1),('minor',0)]), OrderedDict([('major',3),('minor',0)]), OrderedDict([('major',3),('minor',1)])]
                                         if version not in expected_version_numbers:
                                                 raise Exception('found version number ' + str(value) + \
                                                         ' instead of one of the expected ' + str(expected_version_numbers))
