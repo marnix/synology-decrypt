@@ -4,7 +4,7 @@ synology-decrypt:
  Synology's Cloud Sync encryption algorithm
 
 Usage:
-  syndecrypt (-p <password-file> | -k <private.pem>) -O <directory> <encrypted-file>...
+  syndecrypt (-p <password-file> | -k <private.pem>) (-w <workers>) -O <directory> <encrypted-folder>
   syndecrypt (-h | --help)
 
 Options:
@@ -14,33 +14,49 @@ Options:
                            The file containing the decryption password
   -k <private.pem> --key-file=<private.pem>
                            The file containing the decryption private key
+  -w <workers> --workers=<workers>
+                          Number of processes to use
   -h --help                Show this screen.
 
 For more information, see https://github.com/marnix/synology-decrypt
 """
-import docopt
-import os
 import logging
+import os
+from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import wait
+import docopt
 
-import syndecrypt.files as files
 import syndecrypt.util as util
+from syndecrypt.decrypt import decrypt_file
 
 arguments = docopt.docopt(__doc__)
 
 password_file_name = arguments['--password-file']
 if password_file_name != None:
-        password = util._binary_contents_of(password_file_name).strip()
-else: password = None
+    password = util._binary_contents_of(password_file_name).strip()
+else:
+    password = None
 
 private_key_file_name = arguments['--key-file']
 if private_key_file_name != None:
-        private_key = util._binary_contents_of(private_key_file_name)
-else: private_key = None
+    private_key = util._binary_contents_of(private_key_file_name)
+else:
+    private_key = None
 
 output_dir = arguments['--output-directory']
+output_dir = os.path.join(os.curdir, output_dir)
 
 logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(format='%(levelname)s: %(message)s')
 
-for f in arguments['<encrypted-file>']:
-        files.decrypt_file(f, os.path.join(output_dir, f), password=password, private_key=private_key)
+jobs = []
+encrypted_dir = arguments['<encrypted-folder>']
+with ProcessPoolExecutor(int(arguments['--workers'])) as pool:
+    for path, _, files in os.walk(encrypted_dir):
+        path_decrypt = path.replace(encrypted_dir, output_dir)
+        for f in files:
+            source = os.path.join(path, f)
+            output = os.path.join(path_decrypt, f)
+            fut = pool.submit(decrypt_file, source, output, password=password, private_key=private_key)
+            jobs.append(fut)
+    wait(jobs)
