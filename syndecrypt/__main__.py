@@ -22,8 +22,8 @@ For more information, see https://github.com/marnix/synology-decrypt
 """
 import logging
 import os
-from concurrent.futures import ProcessPoolExecutor
-from concurrent.futures import wait
+from concurrent.futures import ProcessPoolExecutor, wait
+
 import docopt
 
 import syndecrypt.util as util
@@ -31,32 +31,34 @@ from syndecrypt.decrypt import decrypt_file
 
 arguments = docopt.docopt(__doc__)
 
-password_file_name = arguments['--password-file']
+password_file_name = arguments["--password-file"]
 if password_file_name != None:
     password = util._binary_contents_of(password_file_name).strip()
 else:
     password = None
 
-private_key_file_name = arguments['--key-file']
+private_key_file_name = arguments["--key-file"]
 if private_key_file_name != None:
     private_key = util._binary_contents_of(private_key_file_name)
 else:
     private_key = None
 
-output_dir = arguments['--output-directory']
+output_dir = arguments["--output-directory"]
 output_dir = os.path.join(os.curdir, output_dir)
 
 logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format='%(levelname)s: %(message)s')
+logging.basicConfig(format="%(levelname)s: %(message)s")
 
 jobs = []
-encrypted_dir = arguments['<encrypted-folder>']
-with ProcessPoolExecutor(int(arguments['--workers'])) as pool:
+encrypted_dir = arguments["<encrypted-folder>"]
+with ProcessPoolExecutor(int(arguments["--workers"])) as pool:
     for path, _, files in os.walk(encrypted_dir):
         path_decrypt = path.replace(encrypted_dir, output_dir)
         for f in files:
             source = os.path.join(path, f)
             output = os.path.join(path_decrypt, f)
-            fut = pool.submit(decrypt_file, source, output, password=password, private_key=private_key)
+            fut = pool.submit(
+                decrypt_file, source, output, password=password, private_key=private_key
+            )
             jobs.append(fut)
     wait(jobs)
