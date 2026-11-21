@@ -1,5 +1,11 @@
 from __future__ import print_function
 
+import os
+import subprocess
+import sys
+import tempfile
+import shutil
+
 import syndecrypt.core as core
 import syndecrypt.util as util
 import collections
@@ -222,3 +228,30 @@ def test_decrypt_single_line_stream_fails_without_key():
                 assert False, 'expected exception'
         except Exception as e:
                 assert_that(e.args[0]).matches('not enough information to decrypt')
+
+
+def test_cli_decrypt_with_absolute_input_path():
+        output_dir = tempfile.mkdtemp()
+        try:
+                encrypted_file = os.path.abspath(
+                        'tests/testfiles-v1/csenc/single-line.txt'
+                )
+                password_file = os.path.abspath(
+                        'tests/testfiles-secrets/password.txt'
+                )
+
+                subprocess.check_call([
+                        sys.executable, '-m', 'syndecrypt',
+                        '-p', password_file,
+                        '-O', output_dir,
+                        encrypted_file
+                ])
+
+                decrypted_file = os.path.join(
+                        output_dir, 'single-line.txt'
+                )
+
+                with open(decrypted_file, 'rb') as f:
+                        assert f.read() == b'Just a single line, no newline character at the end...'
+        finally:
+                shutil.rmtree(output_dir)
